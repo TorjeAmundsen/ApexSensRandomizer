@@ -67,6 +67,8 @@ def randomize():
         formattedSens = cmRev + "cm/360 (" + f"{floatSens:.2f}" + " @ " + str(dpi) + " DPI)"
         sensLog.write("\n")
         sensLog.write(formattedSens)
+        liveSens = open(liveSensTxt, "w")
+        liveSens.write(formattedSens)
         randomsens.write("mouse_sensitivity " + f"{floatSens:.2f}")
         outputSensLabel.configure(text=formattedSens)
     
