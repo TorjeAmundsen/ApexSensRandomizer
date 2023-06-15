@@ -2,7 +2,7 @@
 A non intrusive, customizable, autoexec/config based sensitivity randomizer for Apex Legends.
 
 
-![ApexSensRandomizer GUI with the configuration filled out.](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/351956d4-a5d4-4c33-ba45-7dd2d98d157a) ![ApexSensRandomizer GUI while randomizing your sensitivity.](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/6b5fc6f9-c2a6-4ece-8d8a-dbda1d80b492)
+![ApexSensRandomizer GUI with the configuration filled out.](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/351956d4-a5d4-4c33-ba45-7dd2d98d157a)![ApexSensRandomizer GUI while randomizing your sensitivity.](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/6b5fc6f9-c2a6-4ece-8d8a-dbda1d80b492)
 
 
 # Instructions
