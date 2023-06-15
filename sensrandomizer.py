@@ -49,7 +49,12 @@ def toggle():
     modifierBoxAlt.configure(state=stateToggle[running])
     modifierBoxCtrl.configure(state=stateToggle[running])
     modifierBoxShift.configure(state=stateToggle[running])
-    outputSensLabel.configure(text=sensStateToggle[running])
+    if randomize_bind_button == "Invalid":
+        outputSensLabel.configure(text="Invalid binds!")
+    elif randomize_bind_button== "Bind":
+        outputSensLabel.configure(text="Key not bound!")
+    else:
+        outputSensLabel.configure(text=sensStateToggle[running])
     print(btnText[running])
 
 
@@ -77,7 +82,7 @@ def randomize():
 def toggleSensRandomizer():
     toggle()
     reloadData()
-    if running:
+    if running and (randomize_bind_button != "Bind") and (randomize_bind_button != "Invalid"):
             save_configuration()
             keyboard.add_hotkey(updateBindModifiers(), randomize)
     else:
@@ -176,6 +181,9 @@ bind \"d\" \"+moveright; exec randomsens\""""
                     break
             if line_number is not None:
                 lines[line_number] = "bind \"" + disable_bind + "\" \"exec disablerando\"" + "\n"
+            else:
+                lines[len(lines)-1] = lines[len(lines)-1] + "\n"
+                lines.append(autoexecStr)
             with open(directory + "/cfg/autoexec.cfg", 'w') as autoexec:
                 autoexec.writelines(lines)
     except FileNotFoundError:
@@ -409,7 +417,7 @@ def save_configuration():
         runButton.configure(text="Fill in all settings first!", state="disabled")
 
 def isConfigured():
-    if "" in {directory, dpi, min_sensitivity, max_sensitivity} or "Bind" in {randomize_bind_button, enable_bind, disable_bind} or float(max_sensitivity) < float(min_sensitivity) or "Invalid" in {randomize_bind_button, enable_bind, disable_bind}:
+    if ("" in {directory, dpi, min_sensitivity, max_sensitivity}) or ("Bind" in {randomize_bind_button, enable_bind, disable_bind}) or (float(max_sensitivity) < float(min_sensitivity)) or ("Invalid" in {randomize_bind_button, enable_bind, disable_bind}):
         return False
     else:
         return True
