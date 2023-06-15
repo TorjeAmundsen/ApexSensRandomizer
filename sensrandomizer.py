@@ -35,23 +35,17 @@ def toggle():
     stateToggle = ["normal", "disabled"]
     sensStateToggle = ["Not running", "Press " + updateBindModifiers() + "!"]
     running = not running
+    disabledElementsWhileRunning = [gameDir, dpiEntry, minSensEntry,
+                                    maxSensEntry, autoexecButton, saveButton,
+                                    randomizeBindButton, enableBindButton, selectFolder,
+                                    modifierBoxAlt, modifierBoxCtrl, modifierBoxShift]
+    for element in disabledElementsWhileRunning:
+        element.configure(state=stateToggle[running])
     runButton.configure(text=btnText[running], bg=btnColor[running], activebackground=btnActive[0])
-    gameDir.configure(state=stateToggle[running])
-    dpiEntry.configure(state=stateToggle[running])
-    minSensEntry.configure(state=stateToggle[running])
-    maxSensEntry.configure(state=stateToggle[running])
-    autoexecButton.configure(state=stateToggle[running])
-    saveButton.configure(state=stateToggle[running])
-    randomizeBindButton.configure(state=stateToggle[running])
-    enableBindButton.configure(state=stateToggle[running])
-    disableBindButton.configure(state=stateToggle[running])
-    selectFolder.configure(state=stateToggle[running])
-    modifierBoxAlt.configure(state=stateToggle[running])
-    modifierBoxCtrl.configure(state=stateToggle[running])
-    modifierBoxShift.configure(state=stateToggle[running])
+
     if randomize_bind_button == "Invalid":
         outputSensLabel.configure(text="Invalid binds!")
-    elif randomize_bind_button== "Bind":
+    elif randomize_bind_button == "Bind":
         outputSensLabel.configure(text="Key not bound!")
     else:
         outputSensLabel.configure(text=sensStateToggle[running])
@@ -80,52 +74,26 @@ def randomize():
 
 
 def toggleSensRandomizer():
-    toggle()
     reloadData()
+    toggle()
     if running and (randomize_bind_button != "Bind") and (randomize_bind_button != "Invalid"):
             save_configuration()
             keyboard.add_hotkey(updateBindModifiers(), randomize)
     else:
         keyboard.remove_all_hotkeys()
 
-def record_key(event):
-    key = event.char
-    #randomizeBind.insert(0, key)
 
-def recordKey(): #Function for clicking the bind button for "Randomize sens"
+def recordKey(button):
     k = keyboard.read_key()
     if (k.isalnum() and not len(k) > 1 or k.startswith("f")):
         if len(k) > 1:
             k = str(k).upper()
-            randomizeBindButton.configure(text=k)
+            button.configure(text=k)
         else:
-            randomizeBindButton.configure(text=k)
+            button.configure(text=k)
     else:
-        randomizeBindButton.configure(text="Invalid")
+        button.configure(text="Invalid")
 
-def recordKey2(): #Function for clicking the bind button for "Enable in-game"
-    k = keyboard.read_key()
-    if (k.isalnum() and not len(k) > 1 or k.startswith("f")):
-        if len(k) > 1:
-            k = str(k).upper()
-            enableBindButton.configure(text=k)
-        else:
-            enableBindButton.configure(text=k)
-    else:
-        enableBindButton.configure(text="Invalid")
-
-def recordKey3(): #Function for clicking the bind button for "Disable in-game"
-    k = keyboard.read_key()
-    if (k.isalnum() and not len(k) > 1 or k.startswith("f")):
-        if len(k) > 1:
-            k = str(k).upper()
-            disableBindButton.configure(text=k)
-        else:
-            disableBindButton.configure(text=k)
-    else:
-        disableBindButton.configure(text="Invalid")
-
-#Please ignore the disgusting repeating recordKey functions, I'll figure out a better way to do that when I've written Python for more than half a day LOL
 
 def generateAutoExec():
     save_configuration()
@@ -276,11 +244,11 @@ runButton.grid(row=5, column=0, columnspan=2, rowspan=2, padx=5, ipady=15, stick
 autoexecButton = tk.Button(window, text="Generate autoexec", command=generateAutoExec)
 autoexecButton.grid(row=4, column=1, columnspan=1, padx=5, pady=10, sticky=tk.EW)
 
-hotkeysLabel = tk.Label(window, text="Hotkey/binds:   ")
+hotkeysLabel = tk.Label(window, text="Hotkeys/binds:   ")
 hotkeysLabel.grid(row=0, column=2, columnspan=2, sticky=tk.E)
 
-randomizeBindButton = tk.Button(window, text="Bind", command=recordKey)
-randomizeBindButton.grid(row=1, column=3, columnspan=1, sticky=tk.EW, padx=6)
+randomizeBindButton = tk.Button(window, text="Bind", command=lambda: recordKey(randomizeBindButton))
+randomizeBindButton.grid(row=1, column=3, columnspan=1, sticky=tk.EW, padx=4)
 
 randomizeBindLabel = tk.Label(window, text="Randomize sens:")
 randomizeBindLabel.grid(row=1, column=2, sticky=tk.E, padx=4)
@@ -313,29 +281,18 @@ modifierBoxAlt.grid(row=2, column=2, columnspan=2)
 modifierBoxShift = tk.Checkbutton(window, text="Shift", variable=shiftCheck)
 modifierBoxShift.grid(row=2, column=3, sticky=tk.E, padx=2)
 
-enableBindButton = tk.Button(window, text="Bind", command=recordKey2)
-enableBindButton.grid(row=3, column=3, columnspan=1, sticky=tk.EW, padx=6)
+enableBindButton = tk.Button(window, text="Bind", command=lambda: recordKey(enableBindButton))
+enableBindButton.grid(row=3, column=3, columnspan=1, sticky=tk.EW, padx=4)
 
 enableBindLabel = tk.Label(window, text="Enable in-game:")
 enableBindLabel.grid(row=3, column=2, sticky=tk.E, padx=4)
 
-disableBindButton = tk.Button(window, text="Bind", command=recordKey3)
-disableBindButton.grid(row=4, column=3, columnspan=1, sticky=tk.EW, padx=6)
+disableBindButton = tk.Button(window, text="Bind", command=lambda: recordKey(disableBindButton))
+disableBindButton.grid(row=4, column=3, columnspan=1, sticky=tk.EW, padx=4)
 
 disableBindLabel = tk.Label(window, text="Disable in-game:")
 disableBindLabel.grid(row=4, column=2, sticky=tk.E, padx=4)
 
-#separator1 = ttk.Separator(window, orient="horizontal")
-#separator1.grid(row=1, column=2, columnspan=2, sticky="NEW")
-
-#separator2 = ttk.Separator(window, orient="horizontal")
-#separator2.grid(row=2, column=2, columnspan=2, sticky="SEW")
-
-#separator3 = ttk.Separator(window, orient="vertical")
-#separator3.grid(row=1, column=2, rowspan=2, sticky="NSW")
-
-#separator4 = ttk.Separator(window, orient="vertical")
-#separator4.grid(row=1, column=3, rowspan=2, sticky="NSE")
 
 def load_configuration():
     try:
@@ -418,8 +375,10 @@ def save_configuration():
 
 def isConfigured():
     if ("" in {directory, dpi, min_sensitivity, max_sensitivity}) or ("Bind" in {randomize_bind_button, enable_bind, disable_bind}) or (float(max_sensitivity) < float(min_sensitivity)) or ("Invalid" in {randomize_bind_button, enable_bind, disable_bind}):
+        print("Configured!")
         return False
     else:
+        print("Not configured!")
         return True
 
 saveButton = tk.Button(window, text="Save settings", command=save_configuration)
@@ -430,8 +389,5 @@ outputLabelFrame.grid(row=5, column=2, columnspan=2, rowspan=2, padx=2, pady=4, 
 
 outputSensLabel = tk.Label(window, text="Not running")
 outputSensLabel.grid(row=5, column=2, columnspan=2, rowspan=2)
-
-#authorLabel = tk.Label(window, text="Made by Torje")
-#authorLabel.grid(row=6, column = 4)
 
 window.mainloop()
