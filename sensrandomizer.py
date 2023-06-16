@@ -179,8 +179,11 @@ mouse_sensitivity """ + baseSens.get()
             if line_number is not None:
                 lines[line_number] = "bind \"" + disableBind.get() + "\" \"exec disablerando\"" + "\n"
             else:
-                lines[len(lines)-1] = lines[len(lines)-1] + "\n"
-                lines.append(autoexecStr)
+                try:
+                    lines[len(lines)] = lines[len(lines)] + "\n"
+                    lines.append(autoexecStr)
+                except:
+                    lines.append(autoexecStr)
             with open(directory.get() + "/cfg/autoexec.cfg", 'w') as autoexec:
                 autoexec.writelines(lines)
     except FileNotFoundError:
