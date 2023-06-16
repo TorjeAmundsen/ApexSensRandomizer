@@ -467,7 +467,4 @@ twitterLink = tk.Label(window, text="Twitter", fg="blue", cursor="hand2")
 twitterLink.grid(row=8, column=1, pady=2, sticky=tk.W)
 twitterLink.bind("<Button-1>", lambda e: openSite("https://twitter.com/Txrje"))
 
-
-print(tk.font.Font(font=torjeLabel["font"]).actual())
-
 window.mainloop()
