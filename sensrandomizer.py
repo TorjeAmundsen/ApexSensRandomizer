@@ -8,12 +8,13 @@ import os
 from os import path
 import icon
 import base64
+import time
+import threading
 
 
 def select_folder():
     gameDirPath = filedialog.askdirectory()
-    gameDir.delete(0, tk.END)
-    gameDir.insert(0, gameDirPath)
+    directory.set(gameDirPath)
 
 
 def validate_number_input(text):
@@ -26,26 +27,23 @@ def validate_purenumber_input(text):
 
 running = False
 
+
 def toggle():
     global running
-    global runButton
-    btnText = ["Start Randomizer", "Stop Randomizer"]
-    btnColor = ["#b0ffb9", "#d48e8e"]
-    btnActive = ["#b3e6b9", "#e09f9f"]
-    stateToggle = ["normal", "disabled"]
-    sensStateToggle = ["Not running", "Press " + updateBindModifiers() + "!"]
     running = not running
-    disabledElementsWhileRunning = [gameDir, dpiEntry, minSensEntry,
-                                    maxSensEntry, autoexecButton, saveButton,
-                                    randomizeBindButton, enableBindButton, selectFolder,
+    # List of widgets that will be disabled by the for loop below
+    disabledElementsWhileRunning = [gameDir, selectFolder, dpiEntry, minSensEntry,
+                                    maxSensEntry, autoexecButton, baseSensEntry,
+                                    randomizeBindButton, enableBindButton, disableBindButton,
+                                    useTimerBox, timerIntervalEntry,
                                     modifierBoxAlt, modifierBoxCtrl, modifierBoxShift]
+    
     for element in disabledElementsWhileRunning:
         element.configure(state=stateToggle[running])
     runButton.configure(text=btnText[running], bg=btnColor[running], activebackground=btnActive[0])
-
-    if randomize_bind_button == "Invalid":
+    if randomizeBind.get() == "Invalid":
         outputSensLabel.configure(text="Invalid binds!")
-    elif randomize_bind_button == "Bind":
+    elif randomizeBind.get() == "Bind":
         outputSensLabel.configure(text="Key not bound!")
     else:
         outputSensLabel.configure(text=sensStateToggle[running])
@@ -53,34 +51,64 @@ def toggle():
 
 
 def randomize():
-    if isConfigured():
-        randomsens = open(directory + "/cfg/randomsens.cfg", "w")
-        minFloat = float(minSensEntry.get())
-        maxFloat = float(maxSensEntry.get())
-        initRNG = random.uniform(minFloat, maxFloat)
-        actualSensNum = round(initRNG, 2)
-        floatSens = float(actualSensNum)
-        print(f"{floatSens:.2f}")
-        sensLog = open(sensLogTxt, "a")
-        cmRev = str(round((360 / (0.022 * int(dpi) * floatSens)) * 2.54, 1))
-        formattedSens = cmRev + "cm/360 (" + f"{floatSens:.2f}" + " @ " + str(dpi) + " DPI)"
-        sensLog.write("\n")
-        sensLog.write(formattedSens)
-        liveSens = open(liveSensTxt, "w")
-        liveSens.write(formattedSens)
-        randomsens.write("mouse_sensitivity " + f"{floatSens:.2f}")
-        outputSensLabel.configure(text=formattedSens)
+    minFloat = float(minSensEntry.get())
+    maxFloat = float(maxSensEntry.get())
+    initRNG = random.uniform(minFloat, maxFloat)
+    actualSensNum = round(initRNG, 2)
+    floatSens = float(actualSensNum)
+    print(f"{floatSens:.2f}")
+    cmRev = str(round((360 / (0.022 * int(dpi.get()) * floatSens)) * 2.54, 1))
+    formattedSens = cmRev + "cm/360 (" + f"{floatSens:.2f}" + " @ " + str(dpi.get()) + " DPI)"
+
+    sensLog = open(sensLogTxt, "a")
+    sensLog.write("\n" + formattedSens)
+
+    liveSens = open(liveSensTxt, "w")
+    liveSens.write(formattedSens)
+
+    randomsens = open(directory.get() + "/cfg/randomsens.cfg", "w")
+    randomsens.write("mouse_sensitivity " + f"{floatSens:.2f}")
+
+    outputSensLabel.configure(text=formattedSens)
     
 
 
 def toggleSensRandomizer():
-    reloadData()
-    toggle()
-    if running and (randomize_bind_button != "Bind") and (randomize_bind_button != "Invalid"):
-            save_configuration()
-            keyboard.add_hotkey(updateBindModifiers(), randomize)
+    generateAutoExec()
+    try:
+        if timerInterval.get() < 1:
+            timerInterval.set(1)
+    except:
+        timerInterval.set(10)
+    if os.path.isfile(directory.get() + "/cfg/enablerando.cfg"):
+        toggle()
+        if running:
+                keyboard.add_hotkey(updateBindModifiers(), randomize)
+                if timerCheck.get():
+                    startTimerThread()
+        else:
+            keyboard.remove_all_hotkeys()
+            event.clear()
     else:
-        keyboard.remove_all_hotkeys()
+        runButton.configure(text="Invalid game path!", bg=btnColor[1])
+
+event = threading.Event()
+
+def startTimerThread():
+    event.set()
+    timerThread = threading.Thread(target=timerLoop, args=(timerInterval.get(),))
+    timerThread.daemon = True
+    timerThread.start()
+
+def timerLoop(delay):
+    timer = 0
+    randomize()
+    while event.is_set():
+        timer += 1
+        if timer == delay*10:
+            randomize()
+            timer = 0
+        time.sleep(0.1)
 
 
 def recordKey(button):
@@ -88,13 +116,11 @@ def recordKey(button):
     if (k.isalnum() and not len(k) > 1 or k.startswith("f")):
         if len(k) > 1:
             k = str(k).upper()
-            button.configure(text=k)
+            button.set(k)
         else:
-            button.configure(text=k)
+            button.set(k)
     else:
-        button.configure(text="Invalid")
-
-
+        button.set("Invalid")
 def generateAutoExec():
     save_configuration()
     enablerStr = """#Automatically generated by Apex Sens Randomizer
@@ -112,23 +138,25 @@ unbind \"d\"
 bind \"w\" \"+forward; exec randomsens\"
 bind \"s\" \"+backward; exec randomsens\"
 bind \"a\" \"+moveleft; exec randomsens\"
-bind \"d\" \"+moveright; exec randomsens\""""
+bind \"d\" \"+moveright; exec randomsens\"
+mouse_sensitivity """ + baseSens.get()
 
-    autoexecStr = "#Automatically generated by Apex Sens Randomizer\n\nbind \"" + enable_bind + "\" \"exec enablerando\"\nbind \"" + disable_bind + "\" \"exec disablerando\""
+    autoexecStr = "#Automatically generated by Apex Sens Randomizer\n\nbind \"" + enableBind.get() + "\" \"exec enablerando\"\nbind \"" + disableBind.get() + "\" \"exec disablerando\""
     try:
-        enableRando = open(directory + "/cfg/enablerando.cfg", "w")
+        enableRando = open(directory.get() + "/cfg/enablerando.cfg", "w")
         enableRando.write(enablerStr)
-        runButton.configure(text="Start Randomizer")
     except FileNotFoundError:
-        runButton.configure(state="disabled", text="Incorrect game path!")
+        runButton.configure(text="Incorrect game path!", bg=btnColor[1], state="disabled")
+        return
     
     try:
-        disableRando = open(directory + "/cfg/disablerando.cfg", "w")
+        disableRando = open(directory.get() + "/cfg/disablerando.cfg", "w")
         disableRando.write(disableStr)
-    except:
-        runButton.configure(text="Incorrect game path!")
+    except FileNotFoundError:
+        pass
+
     try:
-        with open(directory + "/cfg/autoexec.cfg", 'r+') as autoexec:
+        with open(directory.get() + "/cfg/autoexec.cfg", 'r+') as autoexec:
             lines = autoexec.readlines()
             line_number = None
             for i, line in enumerate(lines):
@@ -136,11 +164,11 @@ bind \"d\" \"+moveright; exec randomsens\""""
                     line_number = i
                     break
             if line_number is not None:
-                lines[line_number] = "bind \"" + enable_bind + "\" \"exec enablerando\"" + "\n"
-            with open(directory + "/cfg/autoexec.cfg", 'w') as autoexec:
+                lines[line_number] = "bind \"" + enableBind.get() + "\" \"exec enablerando\"" + "\n"
+            with open(directory.get() + "/cfg/autoexec.cfg", 'w') as autoexec:
                 autoexec.writelines(lines)
         
-        with open(directory + "/cfg/autoexec.cfg", 'r+') as autoexec:
+        with open(directory.get() + "/cfg/autoexec.cfg", 'r+') as autoexec:
             lines = autoexec.readlines()
             line_number = None
             for i, line in enumerate(lines):
@@ -148,18 +176,18 @@ bind \"d\" \"+moveright; exec randomsens\""""
                     line_number = i
                     break
             if line_number is not None:
-                lines[line_number] = "bind \"" + disable_bind + "\" \"exec disablerando\"" + "\n"
+                lines[line_number] = "bind \"" + disableBind.get() + "\" \"exec disablerando\"" + "\n"
             else:
                 lines[len(lines)-1] = lines[len(lines)-1] + "\n"
                 lines.append(autoexecStr)
-            with open(directory + "/cfg/autoexec.cfg", 'w') as autoexec:
+            with open(directory.get() + "/cfg/autoexec.cfg", 'w') as autoexec:
                 autoexec.writelines(lines)
     except FileNotFoundError:
-        with open(directory + "/cfg/autoexec.cfg", 'x') as autoexec:
+        with open(directory.get() + "/cfg/autoexec.cfg", 'x') as autoexec:
             autoexec.write(autoexecStr)
+    finally:
+        runButton.configure(text="Start Randomizer", bg="#b0ffb9")
 
-
-# INCOMPLETE ABOVE, FINISH KEY BIND FUNCTION FIRST
 
 icon = """AAABAAMAEBAAAAEABAAoAQAANgAAABgYAAABAAQA6AEAAF4BAAAgIAAAAQAEAOgCAABGAwAAKAAA
 ABAAAAAgAAAAAQAEAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAP///wDs7OwA0dHRALq6ugCysrIA
@@ -207,7 +235,9 @@ window.columnconfigure(3, pad=10)
 gameDirLabel = tk.Label(window, text="Game directory:")
 gameDirLabel.grid(row=0, column=0, sticky=tk.E, padx=4)
 
-gameDir = tk.Entry(window)
+directory = tk.StringVar()
+
+gameDir = tk.Entry(window, textvariable=directory)
 gameDir.grid(row=0, column=1, padx=5, pady=5, sticky=tk.EW)
 
 selectFolder = tk.Button(window, text="Browse...", command=select_folder)
@@ -216,38 +246,55 @@ selectFolder.grid(row=0, column=2, pady=5, sticky=tk.W)
 dpiLabel = tk.Label(window, text="Mouse DPI:")
 dpiLabel.grid(row=1, column=0, sticky=tk.E, padx=4)
 
-dpiEntry = ttk.Combobox(window, values=["400", "800", "1600"])
+dpi = tk.StringVar()
+
+dpiEntry = ttk.Combobox(window, values=["400", "800", "1600"], validate="key", textvariable=dpi)
 dpiEntry.config(validatecommand=(window.register(validate_purenumber_input), "%P"))
 dpiEntry.grid(row=1, column=1, padx=5, pady=5)
 
-hotkeyLabelFrame = tk.LabelFrame(window, text="")
-hotkeyLabelFrame.grid(row=1, column=2, rowspan=2, columnspan=2, sticky="NSEW")
 
 minSensLabel = tk.Label(window, text="Min sensitivity:")
 minSensLabel.grid(row=2, column=0, sticky=tk.E, padx=4)
 
-minSensEntry = tk.Entry(window, validate="key")
+
+minSens = tk.StringVar()
+maxSens = tk.StringVar()
+baseSens = tk.StringVar()
+
+
+minSensEntry = tk.Entry(window, validate="key", textvariable=minSens)
 minSensEntry.config(validatecommand=(window.register(validate_number_input), "%P"))
 minSensEntry.grid(row=2, column=1, padx=5, pady=5, sticky=tk.EW)
 
 maxSensLabel = tk.Label(window, text="Max sensitivity:")
 maxSensLabel.grid(row=3, column=0, sticky=tk.E, padx=4)
 
-maxSensEntry = tk.Entry(window, validate="key")
+maxSensEntry = tk.Entry(window, validate="key", textvariable=maxSens)
 maxSensEntry.config(validatecommand=(window.register(validate_number_input), "%P"))
 maxSensEntry.grid(row=3, column=1, padx=5, pady=5, sticky=tk.EW)
 
+baseSensLabel = tk.Label(window, text="Default sensitivity:")
+baseSensLabel.grid(row=4, column=0, sticky= tk.E, padx=4)
+
+baseSensEntry = tk.Entry(window, validate="key", textvariable=baseSens)
+baseSensEntry.config(validatecommand=(window.register(validate_number_input), "%P"))
+baseSensEntry.grid(row=4, column=1, padx=5, pady=5, sticky=tk.EW)
 
 runButton = tk.Button(window, bg="#b0ffb9", text="Start Randomizer", command=toggleSensRandomizer)
-runButton.grid(row=5, column=0, columnspan=2, rowspan=2, padx=5, ipady=15, sticky=tk.EW, pady=5)
+runButton.grid(row=6, column=0, columnspan=2, rowspan=1, padx=25, ipady=15, sticky=tk.EW, pady=5)
 
-autoexecButton = tk.Button(window, text="Generate autoexec", command=generateAutoExec)
-autoexecButton.grid(row=4, column=1, columnspan=1, padx=5, pady=10, sticky=tk.EW)
+autoexecButton = tk.Button(window, text="Save settings", command=generateAutoExec)
+autoexecButton.grid(row=5, column=0, columnspan=2, padx=25, ipady=3, pady=2, sticky=tk.EW)
 
 hotkeysLabel = tk.Label(window, text="Hotkeys/binds:   ")
 hotkeysLabel.grid(row=0, column=2, columnspan=2, sticky=tk.E)
 
-randomizeBindButton = tk.Button(window, text="Bind", command=lambda: recordKey(randomizeBindButton))
+hotkeyLabelFrame = tk.LabelFrame(window, text="")
+hotkeyLabelFrame.grid(row=1, column=2, rowspan=3, columnspan=2, sticky="NSEW")
+
+randomizeBind = tk.StringVar(window, "Bind")
+
+randomizeBindButton = tk.Button(window, textvariable=randomizeBind, command=lambda: recordKey(randomizeBind))
 randomizeBindButton.grid(row=1, column=3, columnspan=1, sticky=tk.EW, padx=4)
 
 randomizeBindLabel = tk.Label(window, text="Randomize sens:")
@@ -256,7 +303,9 @@ randomizeBindLabel.grid(row=1, column=2, sticky=tk.E, padx=4)
 ctrlCheck = tk.BooleanVar()
 altCheck = tk.BooleanVar()
 shiftCheck = tk.BooleanVar()
-
+timerCheck = tk.BooleanVar()
+timerInterval = tk.IntVar()
+timerInterval.set(10)
 def updateBindModifiers():
     global modified_string
     modified_string = randomizeBindButton.cget("text")
@@ -281,17 +330,26 @@ modifierBoxAlt.grid(row=2, column=2, columnspan=2)
 modifierBoxShift = tk.Checkbutton(window, text="Shift", variable=shiftCheck)
 modifierBoxShift.grid(row=2, column=3, sticky=tk.E, padx=2)
 
-enableBindButton = tk.Button(window, text="Bind", command=lambda: recordKey(enableBindButton))
-enableBindButton.grid(row=3, column=3, columnspan=1, sticky=tk.EW, padx=4)
+enableBind = tk.StringVar(window, "Bind")
+
+enableBindButton = tk.Button(window, text="Bind", textvariable=enableBind, command=lambda: recordKey(enableBind))
+enableBindButton.grid(row=4, column=3, columnspan=1, sticky=tk.EW, padx=4)
 
 enableBindLabel = tk.Label(window, text="Enable in-game:")
-enableBindLabel.grid(row=3, column=2, sticky=tk.E, padx=4)
+enableBindLabel.grid(row=4, column=2, sticky=tk.E, padx=4)
 
-disableBindButton = tk.Button(window, text="Bind", command=lambda: recordKey(disableBindButton))
-disableBindButton.grid(row=4, column=3, columnspan=1, sticky=tk.EW, padx=4)
+useTimerBox = tk.Checkbutton(window, text="Timer in seconds:", variable=timerCheck)
+useTimerBox.grid(row=3, column=2, sticky=tk.W, padx=2)
+
+timerIntervalEntry = tk.Entry(window, textvariable=timerInterval, validate="key", width=9, validatecommand=(window.register(validate_purenumber_input), "%P"))
+timerIntervalEntry.grid(row=3, column=3, padx=2)
+
+disableBind = tk.StringVar(window, "Bind")
+disableBindButton = tk.Button(window, text="Bind", textvariable=disableBind, command=lambda: recordKey(disableBind))
+disableBindButton.grid(row=5, column=3, columnspan=1, sticky=tk.EW, padx=4)
 
 disableBindLabel = tk.Label(window, text="Disable in-game:")
-disableBindLabel.grid(row=4, column=2, sticky=tk.E, padx=4)
+disableBindLabel.grid(row=5, column=2, sticky=tk.E, padx=4)
 
 
 def load_configuration():
@@ -299,21 +357,26 @@ def load_configuration():
         with open("config.json", "r") as config_file:
             configuration = json.load(config_file)
             
-            gameDir.insert(0, configuration.get("directory", ""))
-            dpiEntry.set(configuration.get("dpi", ""))
-            minSensEntry.insert(0, configuration.get("min_sensitivity", ""))
-            maxSensEntry.insert(0, configuration.get("max_sensitivity", ""))
+            directory.set(configuration.get("directory", ""))
+            dpi.set(configuration.get("dpi", ""))
+            minSens.set(configuration.get("min_sensitivity", ""))
+            maxSens.set(configuration.get("max_sensitivity", ""))
+            baseSens.set(configuration.get("base_sensitivity"))
             if configuration.get("randomize_bind", "") != "":
-                randomizeBindButton.configure(text=configuration.get("randomize_bind", ""))
+                randomizeBind.set(configuration.get("randomize_bind", ""))
             modifiers = configuration.get("randomize_bind_modifiers")
             if modifiers:
                 ctrlCheck.set(modifiers[0])
                 altCheck.set(modifiers[1])
                 shiftCheck.set(modifiers[2])
+            timer = configuration.get("timer")
+            if timer:
+                timerCheck.set(timer[0])
+                timerInterval.set(timer[1])
             if configuration.get("enable_bind", "") != "":
-                enableBindButton.configure(text=configuration.get("enable_bind", ""))
+                enableBind.set(configuration.get("enable_bind", ""))
             if configuration.get("disable_bind", "") != "":
-                disableBindButton.configure(text=configuration.get("disable_bind", ""))
+                disableBind.set(configuration.get("disable_bind", ""))
         
         print("Configuration loaded successfully")
     except FileNotFoundError:
@@ -321,73 +384,68 @@ def load_configuration():
 
 load_configuration()
 
-def reloadData():
-
-    global directory
-    global dpi
-    global min_sensitivity
-    global max_sensitivity
-    global randomize_bind
-    global randomize_bind_button
-    global enable_bind
-    global disable_bind
-
-    directory = gameDir.get()
-    dpi = dpiEntry.get()
-    min_sensitivity = minSensEntry.get()
-    max_sensitivity = maxSensEntry.get()
-    randomize_bind_button = randomizeBindButton.cget("text")
-    randomize_bind = updateBindModifiers()
-    enable_bind = enableBindButton.cget("text")
-    disable_bind = disableBindButton.cget("text")
-
-    print(directory, dpi, min_sensitivity, max_sensitivity, randomize_bind, enable_bind, disable_bind)
-
-reloadData()
 
 sensLogTxt = "sensitivity_log.txt"
 liveSensTxt = "current_sensitivity.txt"
 
 def save_configuration():
-    reloadData()
+    try:
+        if timerInterval.get() < 1:
+            timerInterval.set(1)
+    except:
+        timerInterval.set(10)
+
+    dpi.set(dpi.get() or "800")
+    minSens.set(minSens.get() or "0.7")
+    maxSens.set(maxSens.get() or "3.8")
+    baseSens.set(baseSens.get() or "1.5")
+    if randomizeBind.get() == "Bind" or randomizeBind.get() == "Invalid":
+        randomizeBind.set("x")
+        if not any([ctrlCheck.get(), altCheck.get(), shiftCheck.get()]):
+            altCheck.set(True)
+    if enableBind.get() == "Bind" or enableBind.get() == "Invalid":
+        enableBind.set("F6")
+    if disableBind.get() == "Bind" or disableBind.get() == "Invalid":
+        disableBind.set("F7")
+
+    if float(maxSens.get()) < float(minSens.get()):
+        maxSens.set(str(float(minSens.get()) + 1))
+
     try:
         configuration = {
-            "directory": directory,
-            "dpi": dpi,
-            "min_sensitivity": min_sensitivity,
-            "max_sensitivity": max_sensitivity,
-            "randomize_bind": randomize_bind_button,
+            "directory": directory.get(),
+            "dpi": dpi.get(),
+            "min_sensitivity": minSens.get(),
+            "max_sensitivity": maxSens.get(),
+            "base_sensitivity": baseSens.get(),
+            "randomize_bind": randomizeBind.get(),
             "randomize_bind_modifiers": [str(ctrlCheck.get()), str(altCheck.get()), str(shiftCheck.get())],
-            "enable_bind": enable_bind,
-            "disable_bind": disable_bind
+            "timer": [str(timerCheck.get()), str(timerInterval.get())],
+            "enable_bind": enableBind.get(),
+            "disable_bind": disableBind.get()
         }
             
         with open("config.json", "w") as config_file:
             json.dump(configuration, config_file, indent=4)
             
-        print(directory, dpi, min_sensitivity, max_sensitivity, randomize_bind, randomize_bind, enable_bind, disable_bind)
-        if not isConfigured():
-            runButton.configure(text="Fill in all settings correctly first!", bg="#d48e8e")
+        if float(maxSens.get()) < float(minSens.get()):
+            runButton.configure(text="Min sens needs to be < max sens!", bg="#d48e8e", state="disabled")
         else:
             runButton.configure(state="normal")
     except:
         runButton.configure(text="Fill in all settings first!", state="disabled")
 
-def isConfigured():
-    if ("" in {directory, dpi, min_sensitivity, max_sensitivity}) or ("Bind" in {randomize_bind_button, enable_bind, disable_bind}) or (float(max_sensitivity) < float(min_sensitivity)) or ("Invalid" in {randomize_bind_button, enable_bind, disable_bind}):
-        print("Configured!")
-        return False
-    else:
-        print("Not configured!")
-        return True
-
-saveButton = tk.Button(window, text="Save settings", command=save_configuration)
-saveButton.grid(row=4, column=0, columnspan=1, pady=5, padx=5, sticky=tk.EW)
 
 outputLabelFrame = tk.LabelFrame(window, text="Current sens")
-outputLabelFrame.grid(row=5, column=2, columnspan=2, rowspan=2, padx=2, pady=4, ipadx=40, sticky="NSEW")
+outputLabelFrame.grid(row=6, column=2, columnspan=2, rowspan=2, padx=2, pady=4, ipadx=40, sticky="NSEW")
 
 outputSensLabel = tk.Label(window, text="Not running")
-outputSensLabel.grid(row=5, column=2, columnspan=2, rowspan=2)
+outputSensLabel.grid(row=6, column=2, columnspan=2, rowspan=2)
+
+btnText = ["Start Randomizer", "Stop Randomizer"]
+btnColor = ["#b0ffb9", "#d48e8e"]
+btnActive = ["#b3e6b9", "#e09f9f"]
+stateToggle = ["normal", "disabled"]
+sensStateToggle = ["Not running", "Press " + updateBindModifiers() + "!"]
 
 window.mainloop()
