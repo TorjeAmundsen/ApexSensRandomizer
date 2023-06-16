@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, font
 import re
 import json
 import random
@@ -10,6 +10,7 @@ import icon
 import base64
 import time
 import threading
+import webbrowser
 
 
 def select_folder():
@@ -447,5 +448,26 @@ btnColor = ["#b0ffb9", "#d48e8e"]
 btnActive = ["#b3e6b9", "#e09f9f"]
 stateToggle = ["normal", "disabled"]
 sensStateToggle = ["Not running", "Press " + updateBindModifiers() + "!"]
+
+def openSite(url):
+    webbrowser.open_new_tab(url)
+
+torjeLabel = tk.Label(window, text="Created by Torje:")
+torjeLabel.grid(row=8, column=0, padx=3, pady=2)
+
+twitchLink = tk.Label(window, text="Twitch", fg="#6441a5", cursor="hand2")
+twitchLink.grid(row=8, column=1, pady=2, sticky=tk.W, padx=50)
+twitchLink.bind("<Button-1>", lambda e: openSite("https://www.twitch.tv/torje"))
+
+youtubeLink = tk.Label(window, text="YouTube", fg="#c4302b", cursor="hand2")
+youtubeLink.grid(row=8, column=1, pady=2, sticky=tk.E)
+youtubeLink.bind("<Button-1>", lambda e: openSite("https://www.youtube.com/channel/UCAUkwc3fVqhAtzk8reZfkJw"))
+
+twitterLink = tk.Label(window, text="Twitter", fg="blue", cursor="hand2")
+twitterLink.grid(row=8, column=1, pady=2, sticky=tk.W)
+twitterLink.bind("<Button-1>", lambda e: openSite("https://twitter.com/Txrje"))
+
+
+print(tk.font.Font(font=torjeLabel["font"]).actual())
 
 window.mainloop()
