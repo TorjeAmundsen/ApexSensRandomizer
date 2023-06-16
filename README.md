@@ -38,9 +38,12 @@ Press the `Disable in-game` bind to unbind `randomsens.cfg` from your WADS keys,
 
 `Start Randomizer` starts the loop that listens for your `Randomize sens` bind, and also the timer if applicable. Once this is running, the program is fully functioning, and it is editing your config file `randomsens.cfg` containing the senstivity command every time you press `Randomize sens`, and however often the timer is set to automatically randomize on top of that if enabled.
 
+# Display live-updating sensitivity in OBS
+
 The program will also output a log file `sensitivity_log.txt` containing every sensitivity the program has generated so far, as well as a formatted live view file `current_sensitivity.txt` that you can use in say a Text GDI+ source in OBS to show your current randomized sensitivity live in OBS. These files are generated in the same folder you are running `ApexSensRandomizer.exe` from.
 
 ![OBS screenshot showing how to add a Text source](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/174d3d0a-4c5b-4944-970d-2920158ebd08)
+
 ![Screenshot of the Text properties window showing how to set it to read from a file](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/37f97a94-452f-4196-93b9-5e02fc19f801)
 ![Explorer screenshot showing which file to set the Text source to read from in OBS](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/84db3527-7462-4484-a978-8426f5d9b71f)
 
