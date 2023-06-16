@@ -1,11 +1,11 @@
-# ApexSensRandomizer v1.0.0
+# ApexSensRandomizer v1.0.0 - [Download here!](https://github.com/TorjeAmundsen/ApexSensRandomizer/releases)
 A non intrusive, customizable, autoexec/config based sensitivity randomizer for Apex Legends.
 
 
 ![ApexSensRandomizer GUI with the configuration filled out.](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/96094d54-f272-4707-9180-4aca17f7c534)![ApexSensRandomizer GUI while randomizing your sensitivity.](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/6da4d445-edf3-4d0a-9c35-25926b4e1340)
 
 
-## [Download here!](https://github.com/TorjeAmundsen/ApexSensRandomizer/releases)
+
 
 ## Display live-updating sensitivity in OBS!
 
