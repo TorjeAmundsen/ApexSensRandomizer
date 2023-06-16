@@ -5,6 +5,8 @@ A non intrusive, customizable, autoexec/config based sensitivity randomizer for 
 ![ApexSensRandomizer GUI with the configuration filled out.](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/96094d54-f272-4707-9180-4aca17f7c534)![ApexSensRandomizer GUI while randomizing your sensitivity.](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/6da4d445-edf3-4d0a-9c35-25926b4e1340)
 
 
+## [Download here!](https://github.com/TorjeAmundsen/ApexSensRandomizer/releases)
+
 # Display live-updating sensitivity in OBS
 
 The program will also output a log file `sensitivity_log.txt` containing every sensitivity the program has generated so far, as well as a formatted live view file `current_sensitivity.txt` that you can use in say a Text GDI+ source in OBS to show your current randomized sensitivity live in OBS. These files are generated in the same folder you are running `ApexSensRandomizer.exe` from.
