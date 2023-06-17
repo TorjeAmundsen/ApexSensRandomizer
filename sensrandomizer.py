@@ -13,15 +13,18 @@ import threading
 import webbrowser
 import datetime
 
+
+# Browse button for game directory entry
 def select_folder():
     gameDirPath = filedialog.askdirectory()
     directory.set(gameDirPath)
 
 
+# Validates decimal numbers for min/max/default sensitivities
 def validate_number_input(text):
     return re.match(r'^\d*\.?\d{0,2}$', text) is not None or text == ""
 
-
+# Validates pure number input for DPI and timer input
 def validate_purenumber_input(text):
     return text.isdigit() or text == ""
 
