@@ -6,13 +6,15 @@ import json
 import random
 import keyboard
 import os
-from os import path
 import icon
 import base64
 import time
 import threading
 import webbrowser
 import datetime
+import winreg
+import vdf
+
 
 def select_folder():
     gameDirPath = filedialog.askdirectory()
@@ -31,6 +33,7 @@ def validate_purenumber_input(text):
 def toggle():
     global running
     running = not running
+    sensStateToggle = ["Not running", "Press " + updateBindModifiers() + "!"]
     # List of widgets that will be disabled when the randomizer is running
     disabledElementsWhileRunning = [gameDir, selectFolder, dpiEntry, minSensEntry,
                                     maxSensEntry, autoexecButton, baseSensEntry,
@@ -75,6 +78,40 @@ def randomize():
     outputSensLabel.configure(text=formattedSens)
 
 
+def findSteamDirectory():
+    key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, R"SOFTWARE\WOW6432Node\Valve\Steam")
+    path = winreg.QueryValueEx(key, "InstallPath")
+    return path[0]
+
+
+def apexLibraryPath(id):
+    folders = vdf.load(open(rf"{findSteamDirectory()}\steamapps\libraryfolders.vdf"))
+    vdfstring = folders.get("libraryfolders")
+
+    for i in vdfstring.values():
+        currentPath = i.get("path")
+        for j in i.get("apps").keys():
+            if j == id:
+                return currentPath
+
+
+def getApexPath():
+    appmanifestpath = rf"{apexLibraryPath(apexID)}\steamapps\appmanifest_{apexID}.acf"
+    appmanifest = vdf.load(open(appmanifestpath))
+    for i in appmanifest.values():
+        print("Path detected: ", rf"{apexLibraryPath(apexID)}\steamapps\common\{i.get('installdir')}")
+        return rf"{apexLibraryPath(apexID)}\steamapps\common\{i.get('installdir')}"
+
+
+def tryAutoDetectDirectory():
+    try:
+        directory.set(getApexPath())
+        autoDetectDir.configure(bg=greenColors[theme.get()])
+    except Exception as e:
+        print(e)
+        autoDetectDir.configure(bg=redColors[theme.get()])
+
+
 # Main "Start Randomizer" toggle button
 def toggleSensRandomizer():
     generateAutoExec()
@@ -83,8 +120,10 @@ def toggleSensRandomizer():
             timerInterval.set(1)
     except:
         timerInterval.set(10)
+
+    # Flips the "running" switch once it confirms autoexecs have been generated
     if os.path.isfile(directory.get() + "/cfg/enablerando.cfg"):
-        toggle() # Flips the "running" switch once it confirms autoexecs have been generated in the correct path
+        toggle()
         if running:
                 keyboard.add_hotkey(updateBindModifiers(), randomize)
                 if timerCheck.get():
@@ -248,34 +287,25 @@ def saveConfig():
         enableBind.set("F6")
     if disableBind.get() == "Bind" or disableBind.get() == "Invalid":
         disableBind.set("F7")
-
     if float(maxSens.get()) < float(minSens.get()):
         maxSens.set(str(float(minSens.get()) + 1))
 
-    try:
-        configuration = {
-            "directory": directory.get(),
-            "dpi": dpi.get(),
-            "min_sensitivity": minSens.get(),
-            "max_sensitivity": maxSens.get(),
-            "base_sensitivity": baseSens.get(),
-            "randomize_bind": randomizeBind.get(),
-            "randomize_bind_modifiers": [str(ctrlCheck.get()), str(altCheck.get()), str(shiftCheck.get())],
-            "timer": [str(timerCheck.get()), str(timerInterval.get())],
-            "enable_bind": enableBind.get(),
-            "disable_bind": disableBind.get(),
-            "theme": theme.get()
-        }
-            
-        with open("config.json", "w") as config_file:
-            json.dump(configuration, config_file, indent=4)
-            
-        if float(maxSens.get()) < float(minSens.get()):
-            runButton.configure(text="Min sens needs to be < max sens!", bg="#d48e8e", state="disabled")
-        else:
-            runButton.configure(state="normal")
-    except:
-        runButton.configure(text="Fill in all settings first!", state="disabled")
+    configuration = {
+        "directory": directory.get(),
+        "dpi": dpi.get(),
+        "min_sensitivity": minSens.get(),
+        "max_sensitivity": maxSens.get(),
+        "base_sensitivity": baseSens.get(),
+        "randomize_bind": randomizeBind.get(),
+        "randomize_bind_modifiers": [str(ctrlCheck.get()), str(altCheck.get()), str(shiftCheck.get())],
+        "timer": [str(timerCheck.get()), str(timerInterval.get())],
+        "enable_bind": enableBind.get(),
+        "disable_bind": disableBind.get(),
+        "theme": theme.get()
+    }
+
+    with open("config.json", "w") as config_file:
+        json.dump(configuration, config_file, indent=4)
 
 
 # Loads your config.json file to restore your settings when restarting the program
@@ -302,13 +332,14 @@ def loadConfig():
             theme.set(configuration.get("theme", ""))
         
         print("Configuration loaded successfully")
-    except:
+    except FileNotFoundError:
         print("No configuration file found")
 
 
 # Opens corresponding URL in a new tab when clicking my socials buttons
 def openSite(url):
     webbrowser.open_new_tab(url)
+
 
 
 # Theme toggle button. Under construction!
@@ -320,7 +351,7 @@ def openSite(url):
 #    for interactable in interactableElements:
 #        interactable.configure(bg=interactableBackgroundColors[theme.get()], fg=foregroundColors[theme.get()])
 #    for idiots in dumbInteractableElements:
-#        idiots.config(background=interactableBackgroundColors[theme.get()])
+#        style.map('TCombobox', fieldbackground=[('readonly', interactableBackgroundColors[theme.get()])])
 #    print("Dark mode: ", theme.get())
 
 
@@ -354,9 +385,10 @@ AAD/pBmRSv8AAAAAAAAAAAAAAP////8AAAAAAAD/wAP//4AB//4AAH/+AAB//AAAP/wAAD/8AAA/
 AAAf+AAAH/wAAD/8AAA//AAAP/4AAH/+AAB//wAA//+AAf//wAP///AP/w=="""
 
 window = tk.Tk()
-
+style = ttk.Style()
 window.title("Apex Sens Randomizer")
 window.resizable(False, False)
+
 icondata = base64.b64decode(icon)
 tempFile = "icon.ico"
 iconfile = open(tempFile, "wb")
@@ -391,7 +423,7 @@ event = threading.Event()
 running = False
 
 #themeButton = tk.Button(window, text="Theme", command=toggleTheme)
-#themeButton.grid(row=0, column=3, columnspan=1, sticky=tk.EW, padx=4)
+#themeButton.grid(row=0, column=0, columnspan=1, sticky=tk.EW, padx=4)
 
 gameDirLabel = tk.Label(window, text="Game directory:")
 gameDirLabel.grid(row=0, column=0, sticky=tk.E, padx=4)
@@ -408,6 +440,8 @@ dpiLabel.grid(row=1, column=0, sticky=tk.E, padx=4)
 dpiEntry = ttk.Combobox(window, values=["400", "800", "1600"], validate="key", textvariable=dpi)
 dpiEntry.config(validatecommand=(window.register(validate_purenumber_input), "%P"))
 dpiEntry.grid(row=1, column=1, padx=5, pady=5)
+
+dpiEntry['state'] = 'readonly'
 
 minSensLabel = tk.Label(window, text="Min sensitivity:")
 minSensLabel.grid(row=2, column=0, sticky=tk.E, padx=4)
@@ -439,6 +473,9 @@ autoexecButton.grid(row=5, column=0, columnspan=2, padx=25, ipady=3, pady=2, sti
 
 hotkeyLabelFrame = tk.LabelFrame(window, text="")
 hotkeyLabelFrame.grid(row=1, column=2, rowspan=3, columnspan=2, sticky="NSEW")
+
+autoDetectDir = tk.Button(window, text="Auto", command=tryAutoDetectDirectory)
+autoDetectDir.grid(row=0, column=3, columnspan=1, padx=4, sticky=tk.EW)
 
 randomizeBindButton = tk.Button(window, textvariable=randomizeBind, command=lambda: startThreadedFunction(recordKey, randomizeBind, randomizeBindButton))
 randomizeBindButton.grid(row=1, column=3, columnspan=1, sticky=tk.EW, padx=4)
@@ -519,11 +556,11 @@ btnColor = [greenColors[theme.get()], redColors[theme.get()]]
 btnActive = [greenActive[0], redActive[0]]
 stateToggle = ["normal", "disabled"]
 btnText = ["Start Randomizer", "Stop Randomizer"]
-sensStateToggle = ["Not running", "Press " + updateBindModifiers() + "!"]
 activeElements = [randomizeBindButton, enableBindButton, disableBindButton, selectFolder, runButton,
                   autoexecButton, modifierBoxCtrl, modifierBoxAlt, modifierBoxShift, useTimerBox, timerIntervalEntry,
                   gameDir, selectFolder, dpiEntry, minSensEntry, maxSensEntry, baseSensEntry]
 
+apexID = "1172470"
 
 if __name__ == "__main__":
     loadConfig()
@@ -535,6 +572,9 @@ if __name__ == "__main__":
 #       then parsing libraryfolders.vdf to find other installation folders,
 #       and also parsing appmanifest_<steamappid>.acf to find Apex's specific installation folder
 #
+#       1. DONE!
+#
+#
 # 2.    Threaded bind hotkeys. Make the recordKey(button) function run on a separate thread
 #       in order to free up UI customization while waiting for a keypress.
 #       This should also fix the crash that happens when you click anything else in the window while the program
@@ -542,4 +582,11 @@ if __name__ == "__main__":
 #
 #       2. DONE!
 #
+#
 # 3.    Dark theme. Save the retinas.
+#
+#
+# 4.    Replace os.sleep with a time delta
+#
+#
+# 5.    Check for updates on launch
