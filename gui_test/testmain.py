@@ -86,7 +86,7 @@ def main():
     ui.startRandomizerButton.clicked.connect(start_randomizer)
     ui.browseButton.clicked.connect(browse_directory)
     ui.autoDetectButton.clicked.connect(auto_detect_directory)
-    ui.saveSettingsButton.clicked.connect(config.save())
+    ui.saveSettingsButton.clicked.connect(lambda: config.save(ui))
     
     print(sens_randomizer_directory)
     MainWindow.show()

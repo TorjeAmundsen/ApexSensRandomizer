@@ -1,8 +1,8 @@
 import json
 import os
 import sys
-from gui import Ui_MainWindow as ui
-import PySide6.QtGui
+import PySide6
+from PyQt6.QtGui import QKeySequence
 
 class Config():
     theme: bool = 0
@@ -13,8 +13,11 @@ class Config():
         if not os.path.exists(f"{directory}/config"):
             os.makedirs(f"{directory}/config")
         
+    def keysequence_to_string(self, sequence):
+        key_sequence = sequence.keySequence()
+        return key_sequence.toString()
     
-    def save(self):
+    def save(self, ui):
         """ try:
             if ui.timeSpinbox.value() < 1:
                 ui.timeSpinbox.setValue(1)
@@ -37,15 +40,15 @@ class Config():
             maxSens.set(str(float(minSens.get()) + 1)) """
 
         configuration = {
-            "directory": ui.gameDirectoryField.currentText(),
+            "directory": ui.gameDirectoryField.text(),
             "dpi": ui.dpiSelector.currentText(),
             "min_sensitivity": ui.minSensSpinbox.value(),
             "max_sensitivity": ui.maxSensSpinbox.value(),
             "base_sensitivity": ui.defaultSensSpinbox.value(),
-            "randomize_bind": PySide6.QtGui.QKeySequence.toString(ui.randomizeBindField.key()),
+            "randomize_bind": self.keysequence_to_string(ui.randomizeBindField),
             "timer": [ui.timerCheckbox.isChecked(), ui.timeSpinbox.value()],
-            "enable_bind": PySide6.QtGui.QKeySequence.toString(ui.enableBindField.key()),
-            "disable_bind": PySide6.QtGui.QKeySequence.toString(ui.disableBindField.key()),
+            "enable_bind": self.keysequence_to_string(ui.enableBindField),
+            "disable_bind": self.keysequence_to_string(ui.disableBindField),
             "theme": self.theme
         }
 
