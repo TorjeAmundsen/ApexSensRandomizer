@@ -560,6 +560,11 @@
       <string>1600</string>
      </property>
     </item>
+    <item>
+     <property name="text">
+      <string>3200</string>
+     </property>
+    </item>
    </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
@@ -827,22 +832,6 @@
     <property name="frameShadow">
      <enum>QFrame::Plain</enum>
     </property>
-    <widget class="QKeySequenceEdit" name="randomizeBindField">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>10</y>
-       <width>101</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="keySequence">
-      <string>Alt+X</string>
-     </property>
-     <property name="clearButtonEnabled">
-      <bool>false</bool>
-     </property>
-    </widget>
     <widget class="QSpinBox" name="timeSpinbox">
      <property name="geometry">
       <rect>
@@ -902,6 +891,22 @@
       <number>0</number>
      </property>
     </widget>
+    <widget class="QPushButton" name="randomizeBindButton">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>9</y>
+       <width>101</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Set a bind...</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QFrame" name="frame_2">
     <property name="enabled">
@@ -921,32 +926,6 @@
     <property name="frameShadow">
      <enum>QFrame::Plain</enum>
     </property>
-    <widget class="QKeySequenceEdit" name="enableBindField">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>10</y>
-       <width>101</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="clearButtonEnabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QKeySequenceEdit" name="disableBindField">
-     <property name="geometry">
-      <rect>
-       <x>140</x>
-       <y>50</y>
-       <width>101</width>
-       <height>22</height>
-      </rect>
-     </property>
-     <property name="clearButtonEnabled">
-      <bool>false</bool>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_8">
      <property name="geometry">
       <rect>
@@ -985,6 +964,38 @@
       <number>0</number>
      </property>
     </widget>
+    <widget class="QPushButton" name="enableBindButton">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>9</y>
+       <width>101</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Set a bind...</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="disableBindButton">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>49</y>
+       <width>101</width>
+       <height>24</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Set a bind...</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QFrame" name="frame_3">
     <property name="enabled">
@@ -1005,6 +1016,9 @@
      <enum>QFrame::Plain</enum>
     </property>
     <widget class="QLabel" name="outputLabel">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>0</x>

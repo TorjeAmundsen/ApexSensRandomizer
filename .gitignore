@@ -1,2 +1,8 @@
 
 *.pyc
+gui_test/config/sensitivity_log.txt
+gui_test/config/current_sensitivity.txt
+*.json
+gui_test/eventfilter.py
+gui_test/config/config.json
+gui_test/config/config.json
