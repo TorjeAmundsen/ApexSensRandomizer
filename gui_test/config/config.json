@@ -1,13 +1,13 @@
 {
-    "directory": "E:\\SteamLibrary\\steamapps\\common\\Apex Legends",
-    "dpi": "800",
-    "min_sensitivity": 0.7,
-    "max_sensitivity": 3.8,
-    "base_sensitivity": 1.5,
+    "directory": "",
+    "dpi": "1600",
+    "min_sensitivity": 0.35,
+    "max_sensitivity": 1.9,
+    "base_sensitivity": 0.7,
     "randomize_bind": "Alt+X",
     "timer": [
         true,
-        1
+        20
     ],
     "enable_bind": "F6",
     "disable_bind": "F7",

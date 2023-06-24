@@ -1,13 +1,14 @@
 import json
 import os
 import sys
-import PySide6
 from PyQt6.QtGui import QKeySequence
 
 class Config():
+
     theme: bool = 0
     FROZEN = hasattr(sys, "frozen")
     sens_randomizer_directory = os.path.dirname(sys.executable if FROZEN else os.path.abspath(__file__))
+
     def __init__(self, directory):
         self.directory = f"{directory}/config/config.json"
         if not os.path.exists(f"{directory}/config"):
@@ -17,27 +18,12 @@ class Config():
         key_sequence = sequence.keySequence()
         return key_sequence.toString()
     
+    def string_to_keysequence(self, sequence_string):
+        key_sequence = QKeySequence.fromString(sequence_string)
+        return key_sequence
+    
     def save(self, ui):
-        """ try:
-            if ui.timeSpinbox.value() < 1:
-                ui.timeSpinbox.setValue(1)
-        except:
-            ui.timeSpinbox.setValue(10)
-
         ui.dpiSelector.setCurrentText(ui.dpiSelector.currentText() or "800")
-        ui.minSensSpinbox.setValue(ui.minSensSpinbox.value())
-        ui.maxSensSpinbox.setValue(ui.maxSensSpinbox.value())
-        ui.defaultSensSpinbox.set(ui.defaultSensSpinbox.value())
-        if ui.randomizeBindField. == "Bind" or randomizeBind.get() == "Invalid" or randomizeBind.get() == "...":
-            randomizeBind.set("x")
-            if not any([ctrlCheck.get(), altCheck.get(), shiftCheck.get()]):
-                altCheck.set(True)
-        if enableBind.get() == "Bind" or enableBind.get() == "Invalid":
-            enableBind.set("F6")
-        if disableBind.get() == "Bind" or disableBind.get() == "Invalid":
-            disableBind.set("F7")
-        if float(maxSens.get()) < float(minSens.get()):
-            maxSens.set(str(float(minSens.get()) + 1)) """
 
         configuration = {
             "directory": ui.gameDirectoryField.text(),
@@ -54,3 +40,24 @@ class Config():
 
         with open(self.directory, "w") as config_file:
             json.dump(configuration, config_file, indent=4)
+
+    def load(self, ui):
+        try:
+            with open(self.directory, "r") as config_file:
+                configuration = json.load(config_file)
+                
+                ui.gameDirectoryField.setText(configuration.get("directory", ""))
+                ui.dpiSelector.setCurrentText(configuration.get("dpi", 800))
+                ui.minSensSpinbox.setValue(configuration.get("min_sensitivity", 0.7))
+                ui.maxSensSpinbox.setValue(configuration.get("max_sensitivity", 3.8))
+                ui.defaultSensSpinbox.setValue(configuration.get("base_sensitivity", 1.5))
+                ui.randomizeBindField.setKeySequence(self.string_to_keysequence(configuration.get("randomize_bind", "Alt+X")))
+                ui.timerCheckbox.setChecked(configuration.get("timer")[0])
+                ui.timeSpinbox.setValue(configuration.get("timer")[1])
+                ui.enableBindField.setKeySequence(self.string_to_keysequence(configuration.get("enable_bind", "F6")))
+                ui.disableBindField.setKeySequence(self.string_to_keysequence(configuration.get("disable_bind", "F7")))
+                self.theme = (configuration.get("theme", 0))
+            
+            print("Configuration loaded successfully")
+        except FileNotFoundError:
+            print("No configuration file found")
