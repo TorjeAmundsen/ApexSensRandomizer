@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-from PyQt6.QtGui import QKeySequence
 
 class Config():
     update_checked: bool = False
