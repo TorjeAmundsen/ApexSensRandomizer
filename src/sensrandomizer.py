@@ -21,7 +21,9 @@ def main():
         for i in disabled_while_running:
             if i != ui.outputLabel and i != ui.startRandomizerButton:
                 i.setEnabled(not ui.running)
-
+        now = datetime.datetime.now()
+        sensLog = open(sens_log_txt, "a")
+        sensLog.write(f"\n[{now.strftime('%Y-%m-%d %H:%M:%S] ')}{start_stop_log[ui.running]}")
     def start_randomizer():
         generate_autoexec()
         if os.path.isfile(ui.gameDirectoryField.text() + "/cfg/enablerando.cfg"):
@@ -96,7 +98,7 @@ def main():
                 k = str(k).upper()
                 bind.setText(k)
         else:
-            bind.setText("Invalid!")
+            bind.setText("Invalid key!")
         bind.setChecked(False)
         for i in disabled_while_running:
             i.setEnabled(True)
@@ -239,6 +241,8 @@ AAAf+AAAH/wAAD/8AAA//AAAP/4AAH/+AAB//wAA//+AAf//wAP///AP/w=="""
     release_tag = "v1.0.1"
     event = threading.Event()
     running_text = ["Start Randomizer", "Stop Randomizer"]
+    start_stop_log = ["Randomizer stopped!\n", "Randomizer started!"]
+    
     disabled_while_running = [ui.gameDirectoryField,  ui.dpiSelector,        ui.autoDetectButton,
                               ui.browseButton,        ui.defaultSensSpinbox, ui.minSensSpinbox,
                               ui.maxSensSpinbox,      ui.saveSettingsButton, ui.enableBindButton,

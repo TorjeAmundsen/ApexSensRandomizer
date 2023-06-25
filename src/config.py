@@ -6,6 +6,7 @@ from PyQt6.QtGui import QKeySequence
 class Config():
 
     theme: bool = 0
+    invalid_binds = ["Set a bind...", "Invalid key!", "..."]
     FROZEN = hasattr(sys, "frozen")
     sens_randomizer_directory = os.path.dirname(sys.executable if FROZEN else os.path.abspath(__file__))
 
@@ -26,11 +27,11 @@ class Config():
     
     def save(self, ui):
         ui.dpiSelector.setCurrentText(ui.dpiSelector.currentText() or "800")
-        if ui.randomizeBindButton.text() in ["Set a bind...", "Invalid key!", "..."]:
+        if ui.randomizeBindButton.text() in self.invalid_binds:
             ui.randomizeBindButton.setText("X")
-        if ui.enableBindButton.text() in ["Set a bind...", "Invalid key!", "..."]:
+        if ui.enableBindButton.text() in self.invalid_binds:
             ui.enableBindButton.setText("F6")
-        if ui.disableBindButton.text() in ["Set a bind...", "Invalid key!", "..."]:
+        if ui.disableBindButton.text() in self.invalid_binds:
             ui.disableBindButton.setText("F7")
         configuration = {
             "directory": ui.gameDirectoryField.text(),

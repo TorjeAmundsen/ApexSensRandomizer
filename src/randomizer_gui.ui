@@ -603,6 +603,12 @@
     <property name="focusPolicy">
      <enum>Qt::StrongFocus</enum>
     </property>
+    <property name="minimum">
+     <double>0.050000000000000</double>
+    </property>
+    <property name="maximum">
+     <double>100.000000000000000</double>
+    </property>
     <property name="singleStep">
      <double>0.050000000000000</double>
     </property>
@@ -626,7 +632,10 @@
      <enum>QAbstractSpinBox::UpDownArrows</enum>
     </property>
     <property name="minimum">
-     <double>0.010000000000000</double>
+     <double>0.050000000000000</double>
+    </property>
+    <property name="maximum">
+     <double>100.000000000000000</double>
     </property>
     <property name="singleStep">
      <double>0.050000000000000</double>
@@ -648,7 +657,10 @@
      <enum>Qt::StrongFocus</enum>
     </property>
     <property name="minimum">
-     <double>0.020000000000000</double>
+     <double>0.100000000000000</double>
+    </property>
+    <property name="maximum">
+     <double>100.000000000000000</double>
     </property>
     <property name="singleStep">
      <double>0.050000000000000</double>
