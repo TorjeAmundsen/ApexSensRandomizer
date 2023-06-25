@@ -4,7 +4,8 @@ import sys
 from PyQt6.QtGui import QKeySequence
 
 class Config():
-
+    update_checked: bool = False
+    skipped_update_tag: str = ""
     theme: bool = 0
     invalid_binds = ["Set a bind...", "Invalid key!", "..."]
     FROZEN = hasattr(sys, "frozen")
@@ -44,7 +45,9 @@ class Config():
             "timer": [ui.timerCheckbox.isChecked(), ui.timeSpinbox.value()],
             "enable_bind": ui.enableBindButton.text(),
             "disable_bind": ui.disableBindButton.text(),
-            "theme": self.theme
+            "theme": self.theme,
+            "update_checked": self.update_checked,
+            "skipped_update_tag": self.skipped_update_tag
         }
 
         with open(self.directory, "w") as config_file:
@@ -68,7 +71,9 @@ class Config():
                 ui.timeSpinbox.setValue(configuration.get("timer")[1])
                 ui.enableBindButton.setText(configuration.get("enable_bind", "Set a bind..."))
                 ui.disableBindButton.setText(configuration.get("disable_bind", "Set a bind..."))
-                self.theme = (configuration.get("theme", 0))
+                self.theme = configuration.get("theme", 0)
+                self.update_checked = configuration.get("update_checked", False)
+                self.skipped_update_tag = configuration.get("skipped_update_tag", "")
             
             print("Configuration loaded successfully")
         except FileNotFoundError:

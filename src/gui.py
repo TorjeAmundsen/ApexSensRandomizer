@@ -166,6 +166,7 @@ class Ui_MainWindow(object):
         brush = QtGui.QBrush(QtGui.QColor(17, 17, 17, 127))
         brush.setStyle(QtCore.Qt.BrushStyle.SolidPattern)
         palette.setBrush(QtGui.QPalette.ColorGroup.Disabled, QtGui.QPalette.ColorRole.PlaceholderText, brush)
+        self.palette = palette
         MainWindow.setPalette(palette)
         MainWindow.setAcceptDrops(False)
         icon = QtGui.QIcon()

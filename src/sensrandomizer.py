@@ -3,7 +3,7 @@ import sys
 import random
 import os
 from PyQt6 import QtWidgets, QtGui
-from PyQt6.QtWidgets import QApplication, QFileDialog
+from PyQt6.QtWidgets import QApplication, QFileDialog, QMessageBox
 from gui import Ui_MainWindow as QtGUI
 import datetime
 import base64
@@ -13,8 +13,43 @@ import winreg
 import threading
 import time
 import keyboard
+import requests
+import webbrowser
 
 def main():
+    def check_for_updates(release, ui, window):
+        owner = "TorjeAmundsen"
+        repo = "ApexSensRandomizer"
+        response = requests.get(f"https://api.github.com/repos/{owner}/{repo}/releases/latest")
+        response_json = response.json()
+        tag = response_json.get("tag_name", "")
+        assets = response_json.get("assets")
+        download = assets[0]["browser_download_url"]
+        if response.status_code == 200:
+            if tag not in [release, config.skipped_update_tag]:
+                # [f"Download {release_tag}", "Show Changelog", "Remind Me Later", "Don't Ask Again"]
+                print("placeholder for showing a new update is available")
+                update = QMessageBox(window)
+                update.setWindowTitle("Update")
+                update.setText("A new update is available for ApexSensRandomizer!")
+                update.setInformativeText(f"Your current version: {release_tag}\nLatest release: {tag}\n")
+                update.setPalette(ui.palette)
+                update_button = update.addButton("Download", QMessageBox.ButtonRole.YesRole)
+                update_button.clicked.connect(lambda: open_site(download))
+                changelog_button = update.addButton("Show Changelog", QMessageBox.ButtonRole.YesRole)
+                changelog_button.clicked.disconnect()
+                changelog_button.clicked.connect(lambda: open_site(f"https://www.github.com/{owner}/{repo}/releases/latest"))
+                skip_update_button = update.addButton("Skip Version", QMessageBox.ButtonRole.YesRole)
+                skip_update_button.clicked.connect(lambda: skip_update(tag))
+                update.addButton("Update Later", QMessageBox.ButtonRole.NoRole)
+                update.exec()
+    def open_site(url):
+        webbrowser.open_new_tab(url)
+    
+    def skip_update(tag):
+        config.skipped_update_tag = tag
+        config.save(ui)
+
     def toggle():
         ui.running = not ui.running
         ui.startRandomizerButton.setText(running_text[ui.running])
@@ -238,7 +273,7 @@ AAAf+AAAH/wAAD/8AAA//AAAP/4AAH/+AAB//wAA//+AAf//wAP///AP/w=="""
     os.remove(temp_file)
 
     apexID = "1172470"
-    release_tag = "v1.0.1"
+    release_tag = "v1.1.0"
     event = threading.Event()
     running_text = ["Start Randomizer", "Stop Randomizer"]
     start_stop_log = ["Randomizer stopped!\n", "Randomizer started!"]
@@ -250,6 +285,7 @@ AAAf+AAAH/wAAD/8AAA//AAAP/4AAH/+AAB//wAA//+AAf//wAP///AP/w=="""
                               ui.randomizeBindButton, ui.outputLabel,        ui.ctrlCheck,
                               ui.altCheck,            ui.shiftCheck,         ui.startRandomizerButton]
     
+    ui.dpiSelector.setCurrentIndex(1)
     config = Config(sens_randomizer_directory)
     config.load(ui)
     QApplication.setStyle("fusion")
@@ -261,9 +297,11 @@ AAAf+AAAH/wAAD/8AAA//AAAP/4AAH/+AAB//wAA//+AAf//wAP///AP/w=="""
     ui.randomizeBindButton.clicked.connect(lambda: startThreadedFunction(recordKey, ui.randomizeBindButton, True))
     ui.enableBindButton.clicked.connect(lambda: startThreadedFunction(recordKey, ui.enableBindButton, True))
     ui.disableBindButton.clicked.connect(lambda: startThreadedFunction(recordKey, ui.disableBindButton, True))
-
+    MainWindow.setWindowTitle(f"Apex Sensitivity Randomizer {release_tag}")
     print(sens_randomizer_directory)
     MainWindow.show()
+    if not config.update_checked:
+        check_for_updates(release_tag, ui, MainWindow)
     
     sys.exit(app.exec())
     
