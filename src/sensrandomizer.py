@@ -1,3 +1,4 @@
+# Made by Torje Amundsen
 import sys
 import random
 import os
