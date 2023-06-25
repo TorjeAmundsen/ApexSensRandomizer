@@ -14,18 +14,20 @@ class Config():
         if not os.path.exists(f"{directory}/config"):
             os.makedirs(f"{directory}/config")
         
-    """ def keysequence_to_string(self, sequence):
-        key_sequence = sequence.keySequence()
-        return key_sequence.toString()
-    
-    def string_to_keysequence(self, sequence_string):
-        key_sequence = QKeySequence.fromString(sequence_string)
-        return key_sequence """
+    def update_bind_modifiers(self, string, ui):
+        combinedBind = string
+        if ui.shiftCheck.isChecked():
+            combinedBind = "Shift + " + combinedBind
+        if ui.altCheck.isChecked():
+            combinedBind = "Alt + " + combinedBind
+        if ui.ctrlCheck.isChecked():
+            combinedBind = "Ctrl + " + combinedBind
+        return combinedBind
     
     def save(self, ui):
         ui.dpiSelector.setCurrentText(ui.dpiSelector.currentText() or "800")
         if ui.randomizeBindButton.text() in ["Set a bind...", "Invalid key!", "..."]:
-            ui.randomizeBindButton.setText("Alt+X")
+            ui.randomizeBindButton.setText("X")
         if ui.enableBindButton.text() in ["Set a bind...", "Invalid key!", "..."]:
             ui.enableBindButton.setText("F6")
         if ui.disableBindButton.text() in ["Set a bind...", "Invalid key!", "..."]:
@@ -37,6 +39,7 @@ class Config():
             "max_sensitivity": ui.maxSensSpinbox.value(),
             "base_sensitivity": ui.defaultSensSpinbox.value(),
             "randomize_bind": ui.randomizeBindButton.text(),
+            "randomize_bind_modifiers": [ui.ctrlCheck.isChecked(), ui.altCheck.isChecked(), ui.shiftCheck.isChecked()],
             "timer": [ui.timerCheckbox.isChecked(), ui.timeSpinbox.value()],
             "enable_bind": ui.enableBindButton.text(),
             "disable_bind": ui.disableBindButton.text(),
@@ -57,6 +60,9 @@ class Config():
                 ui.maxSensSpinbox.setValue(configuration.get("max_sensitivity", 3.8))
                 ui.defaultSensSpinbox.setValue(configuration.get("base_sensitivity", 1.5))
                 ui.randomizeBindButton.setText(configuration.get("randomize_bind", "Set a bind..."))
+                ui.ctrlCheck.setChecked(configuration.get("randomize_bind_modifiers")[0])
+                ui.altCheck.setChecked(configuration.get("randomize_bind_modifiers")[1])
+                ui.shiftCheck.setChecked(configuration.get("randomize_bind_modifiers")[2])
                 ui.timerCheckbox.setChecked(configuration.get("timer")[0])
                 ui.timeSpinbox.setValue(configuration.get("timer")[1])
                 ui.enableBindButton.setText(configuration.get("enable_bind", "Set a bind..."))

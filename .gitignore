@@ -6,3 +6,6 @@ gui_test/config/current_sensitivity.txt
 gui_test/eventfilter.py
 gui_test/config/config.json
 gui_test/config/config.json
+*.xml
+*.json
+gui_test/config/config.json

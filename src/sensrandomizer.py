@@ -1,11 +1,11 @@
 import sys
 import random
 import os
-from PyQt6 import QtWidgets
+from PyQt6 import QtWidgets, QtGui
 from PyQt6.QtWidgets import QApplication, QFileDialog
 from gui import Ui_MainWindow as QtGUI
-from PyQt6.QtGui import QKeySequence, QKeyEvent
 import datetime
+import base64
 from config import Config
 import vdf
 import winreg
@@ -14,23 +14,20 @@ import time
 import keyboard
 
 def main():
-
     def toggle():
         ui.running = not ui.running
-        print(f"Running: {ui.running}")
         ui.startRandomizerButton.setText(running_text[ui.running])
         for i in disabled_while_running:
-            i.setEnabled(not ui.running)
+            if i != ui.outputLabel:
+                i.setEnabled(not ui.running)
 
     def start_randomizer():
         generate_autoexec()
-
-        # Flips the "running" switch once it confirms autoexecs have been generated
         if os.path.isfile(ui.gameDirectoryField.text() + "/cfg/enablerando.cfg"):
             toggle()
             if ui.running:
-                    keyboard.add_hotkey(ui.randomizeBindButton.text(), randomize)
-                    ui.outputLabel.setText(f"Press {ui.randomizeBindButton.text()}")
+                    keyboard.add_hotkey(config.update_bind_modifiers(ui.randomizeBindButton.text(), ui), randomize)
+                    ui.outputLabel.setText(f"Press {config.update_bind_modifiers(ui.randomizeBindButton.text(), ui)}")
                     if ui.timerCheckbox.isChecked():
                         startThreadedFunction(timerLoop, ui.timeSpinbox.value())
             else:
@@ -71,8 +68,13 @@ def main():
             print("Path detected: ", rf"{apexLibraryPath(apexID)}\steamapps\common\{i.get('installdir')}")
             ui.gameDirectoryField.setText(rf"{apexLibraryPath(apexID)}\steamapps\common\{i.get('installdir')}")
     
-    def startThreadedFunction(function, delay):
-        newThread = threading.Thread(target=function, args=(delay,))
+    def startThreadedFunction(function, args, button=False):
+        if button:
+            for i in disabled_while_running:
+                if i != args:
+                    i.setEnabled(False)
+            args.setText("Press a key...")
+        newThread = threading.Thread(target=function, args=(args,))
         newThread.daemon = True
         newThread.start()
 
@@ -86,7 +88,17 @@ def main():
                 randomize()
                 timer = 0
             time.sleep(0.1)
-    
+
+    def recordKey(bind):
+        k = keyboard.read_key()
+        if (k.isalnum() and not len(k) > 1 or k.startswith("f")):
+                k = str(k).upper()
+                bind.setText(k)
+        else:
+            bind.setText("Invalid!")
+        bind.setChecked(False)
+        for i in disabled_while_running:
+            i.setEnabled(True)
     def randomize():
         min_float = float(ui.minSensSpinbox.value())
         max_float = float(ui.maxSensSpinbox.value())
@@ -165,13 +177,6 @@ mouse_sensitivity {ui.defaultSensSpinbox.value()}"""
         finally:
             ui.startRandomizerButton.setText("Start Randomizer")
             ui.startRandomizerButton.setEnabled(True)
-
-    def restrict_key_sequence(key_sequence, allowed_keys):
-        new_key_sequence = QKeySequence()
-        for key in key_sequence:
-            if key in allowed_keys:
-                new_key_sequence += key
-        return new_key_sequence
     
     def reset_sensitivity():
         randomsens = open(ui.gameDirectoryField.text() + "/cfg/randomsens.cfg", "w")
@@ -185,10 +190,49 @@ mouse_sensitivity {ui.defaultSensSpinbox.value()}"""
     sens_log_txt = f"{sens_randomizer_directory}/config/sensitivity_log.txt"
 
     ui = QtGUI()
-    QApplication.setStyle("fusion")
+    
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui.setupUi(MainWindow)
+
+    iconString = """AAABAAMAEBAAAAEABAAoAQAANgAAABgYAAABAAQA6AEAAF4BAAAgIAAAAQAEAOgCAABGAwAAKAAA
+ABAAAAAgAAAAAQAEAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAP///wDs7OwA0dHRALq6ugCysrIA
+rKysAJKSkgCIiIgAfX19AGdnZwBYWFgAT09PAEFBQQAvLy8AFhYWAAICAgAAAAx3d8AAAAAAYAAA
+BgAAAAsACSAAsAAABQAEEABQAAAEAApQAEAAAAQACd4gQAAABAagDmBAAAAEA/3fIEAAAAUAIzIA
+UAAACnhohoegAAADAAVQADAAAAUABEAAUAAACgAEQACgAAAPIARAAvAAAADjAzA+AAAAAA+6q/AA
+APgfAADwDwAA4AcAAOAHAADgBwAA4AcAAOAHAADgBwAA4AcAAOAHAADgBwAA4AcAAOAHAADgBwAA
+8A8AAPgfAAAoAAAAGAAAADAAAAABAAQAAAAAAMABAAAAAAAAAAAAAAAAAAAAAAAA////APr6+gDp
+6ekA0dHRAMXFxQCtra0Am5ubAI2NjQB4eHgAampqAF5eXgBHR0cANDQ0ACAgIAAQEBAAAAAAAAAA
+AA/8u7vP8AAAAAAAAPggAAACjwAAAAAAD1AAAAAABfAAAAAACgAAJzAAAKAAAAAA8wAAT2AAAD8A
+AAAA4QAAAAAAAB4AAAAA4QAAKjAAAB4AAAAA4QAAT9pgAB4AAAAA4QAAGs31AB4AAAAA4QB7AAH4
+AB4AAAAA4QCvUzb4AB4AAAAA4QBP///zAB4AAAAA4AACREQgAA4AAAAA5VVUQzRFVV4AAAAA+ZmZ
+jMiZmZ8AAAAA4AAAB3AAAA4AAAAA4QAAB3AAAB4AAAAA8gAAB3AAAC8AAAAA9QAAB3AAAF8AAAAA
+DAAAB3AAAMAAAAAAD3AAB3AAB/AAAAAAAPYAB3AAbwAAAAAAAA+0B3BL8AAAAAAAAAAP3d3wAAAA
+AP4AfwD8AD8A+AAfAPgAHwDwAA8A8AAPAPAADwDwAA8A8AAPAPAADwDwAA8A8AAPAPAADwDwAA8A
+8AAPAPAADwDwAA8A8AAPAPAADwD4AB8A+AAfAPwAPwD+AH8A/4H/ACgAAAAgAAAAQAAAAAEABAAA
+AAAAwAIAAAAAAAAAAAAAAAAAAAAAAAD///8A7OzsAN7e3gC+vr4Ap6enAJiYmACKiooAcnJyAGdn
+ZwBcXFwASUlJADU1NQAqKioAGxsbAAsLCwAAAAAAAAAAAAD//u7u7/8AAAAAAAAAAAAPpCERERJK
+8AAAAAAAAAAP9AAAAAAAAE/wAAAAAAAADzAAAAAAAAAD8AAAAAAAAPgAAAAjIAAAAI8AAAAAAADx
+AAAAr3AAAAAfAAAAAAAAsAAAAFpAAAAACwAAAAAAD5AAAAAAAAAAAAnwAAAAAA+QAAAARzAAAAAJ
+8AAAAAAPkAAAAK+RIAAACfAAAAAAD5AAAACP//sQAAnwAAAAAA+QAAAAKJnfcAAJ8AAAAAAPkAAG
+gwAAb5AACfAAAAAAD5AADPUAAG+QAAnwAAAAAA+QAAr8mZnfkAAJ8AAAAAAPkAAD/////iAACfAA
+AAAAD5AAACREREEAAAnwAAAAAA+AAAAAAAAAAAAI8AAAAAAP2qqqqqmaqqqqrfAAAAAAD7VmZmZc
+xWZmZlvwAAAAAA+AAAAAB3AAAAAI8AAAAAAPkAAAAAiAAAAACfAAAAAAD5AAAAAIgAAAAAnwAAAA
+AADAAAAACIAAAAAMAAAAAAAA8QAAAAiAAAAAHwAAAAAAAPYAAAAIgAAAAG8AAAAAAAAOAAAACIAA
+AADgAAAAAAAAD6AAAAiAAAAK8AAAAAAAAAD5AAAIgAAAnwAAAAAAAAAAD7IACIAAK/AAAAAAAAAA
+AAD/pBmRSv8AAAAAAAAAAAAAAP////8AAAAAAAD/wAP//4AB//4AAH/+AAB//AAAP/wAAD/8AAA/
++AAAH/gAAB/4AAAf+AAAH/gAAB/4AAAf+AAAH/gAAB/4AAAf+AAAH/gAAB/4AAAf+AAAH/gAAB/4
+AAAf+AAAH/wAAD/8AAA//AAAP/4AAH/+AAB//wAA//+AAf//wAP///AP/w=="""
+    icondata = base64.b64decode(iconString)
+    temp_file = "icon.ico"
+    icon_file = open(temp_file, "wb")
+    icon_file.write(icondata)
+    icon_file.close()
+
+    icon = QtGui.QIcon()
+    icon.addPixmap(QtGui.QPixmap(temp_file), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+    MainWindow.setWindowIcon(icon)
+    os.remove(temp_file)
 
     apexID = "1172470"
     release_tag = "v1.0.1"
@@ -198,16 +242,20 @@ mouse_sensitivity {ui.defaultSensSpinbox.value()}"""
                               ui.browseButton,       ui.defaultSensSpinbox, ui.minSensSpinbox,
                               ui.maxSensSpinbox,     ui.saveSettingsButton, ui.enableBindButton,
                               ui.disableBindButton,  ui.timerCheckbox,      ui.timeSpinbox,
-                              ui.randomizeBindButton]
+                              ui.randomizeBindButton, ui.outputLabel]
     
     config = Config(sens_randomizer_directory)
     config.load(ui)
+    QApplication.setStyle("fusion")
     ui.running = False
     ui.startRandomizerButton.clicked.connect(start_randomizer)
     ui.browseButton.clicked.connect(browse_directory)
     ui.autoDetectButton.clicked.connect(auto_detect_directory)
     ui.saveSettingsButton.clicked.connect(generate_autoexec)
-    
+    ui.randomizeBindButton.clicked.connect(lambda: startThreadedFunction(recordKey, ui.randomizeBindButton, True))
+    ui.enableBindButton.clicked.connect(lambda: startThreadedFunction(recordKey, ui.enableBindButton, True))
+    ui.disableBindButton.clicked.connect(lambda: startThreadedFunction(recordKey, ui.disableBindButton, True))
+
     print(sens_randomizer_directory)
     MainWindow.show()
     
