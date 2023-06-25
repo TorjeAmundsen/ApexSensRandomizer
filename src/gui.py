@@ -421,13 +421,3 @@ class Ui_MainWindow(object):
         self.enableBindButton.setText(_translate("MainWindow", "Set a bind..."))
         self.disableBindButton.setText(_translate("MainWindow", "Set a bind..."))
         self.outputLabel.setText(_translate("MainWindow", "Not running"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec())
