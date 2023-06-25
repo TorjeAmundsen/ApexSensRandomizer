@@ -17,6 +17,8 @@ from requests import get as request
 from webbrowser import open_new_tab
 
 def main():
+
+
     def check_for_updates(release, ui, window):
         owner = "TorjeAmundsen"
         repo = "ApexSensRandomizer"
@@ -44,9 +46,11 @@ def main():
     def open_site(url):
         open_new_tab(url)
     
+
     def skip_update(tag):
         config.skipped_update_tag = tag
         config.save(ui)
+
 
     def toggle():
         ui.running = not ui.running
@@ -57,6 +61,14 @@ def main():
         now = datetime.now()
         sensLog = open(sens_log_txt, "a")
         sensLog.write(f"\n[{now.strftime('%Y-%m-%d %H:%M:%S] ')}{start_stop_log[ui.running]}")
+        if not ui.running:
+            try:
+                randomsens = open(ui.gameDirectoryField.text() + "/cfg/randomsens.cfg", "w")
+                randomsens.write(f"mouse_sensitivity {ui.defaultSensSpinbox.value()}")
+            except FileNotFoundError:
+                pass
+
+
     def start_randomizer():
         generate_autoexec()
         if path.isfile(ui.gameDirectoryField.text() + "/cfg/enablerando.cfg"):
@@ -72,6 +84,7 @@ def main():
                 remove_all_hotkeys()
                 event.clear()
 
+
     def browse_directory():
         browse = QFileDialog.getExistingDirectory(
             None,
@@ -82,20 +95,24 @@ def main():
         if browse:
             ui.gameDirectoryField.setText(f"{browse}/")
 
+
     def findSteamDirectory():
         key = OpenKey(HKEY_LOCAL_MACHINE, R"SOFTWARE\WOW6432Node\Valve\Steam")
         path = QueryValueEx(key, "InstallPath")
         return path[0]
 
+
     def apexLibraryPath(id):
         folders = vdfload(open(rf"{findSteamDirectory()}\steamapps\libraryfolders.vdf"))
         vdfstring = folders.get("libraryfolders")
+
 
         for i in vdfstring.values():
             current_path = i.get("path")
             for j in i.get("apps").keys():
                 if j == id:
                     return current_path
+
 
     def auto_detect_directory():
         appmanifestpath = rf"{apexLibraryPath(apexID)}\steamapps\appmanifest_{apexID}.acf"
@@ -104,6 +121,7 @@ def main():
             print("Path detected: ", rf"{apexLibraryPath(apexID)}\steamapps\common\{i.get('installdir')}")
             ui.gameDirectoryField.setText(rf"{apexLibraryPath(apexID)}\steamapps\common\{i.get('installdir')}")
     
+
     def startThreadedFunction(function, args, button=False):
         if button:
             for i in disabled_while_running:
@@ -113,6 +131,7 @@ def main():
         newThread = Thread(target=function, args=(args,))
         newThread.daemon = True
         newThread.start()
+
 
     def timerLoop(delay):
         event.set()
@@ -125,6 +144,7 @@ def main():
                 timer = 0
             sleep(0.1)
 
+
     def recordKey(bind):
         k = read_key()
         if (k.isalnum() and not len(k) > 1 or k.startswith("f")):
@@ -135,6 +155,8 @@ def main():
         bind.setChecked(False)
         for i in disabled_while_running:
             i.setEnabled(True)
+
+
     def randomize():
         min_float = float(ui.minSensSpinbox.value())
         max_float = float(ui.maxSensSpinbox.value())
@@ -157,6 +179,7 @@ def main():
         randomsens.write("mouse_sensitivity " + f"{floatSens:.2f}")
 
         ui.outputLabel.setText(formattedSens)
+
 
     def generate_autoexec():
         config.save(ui)
@@ -213,6 +236,7 @@ mouse_sensitivity {ui.defaultSensSpinbox.value()}"""
         finally:
             ui.startRandomizerButton.setText("Start Randomizer")
             ui.startRandomizerButton.setEnabled(True)
+    
     
     def reset_sensitivity():
         randomsens = open(ui.gameDirectoryField.text() + "/cfg/randomsens.cfg", "w")
