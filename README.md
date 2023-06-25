@@ -1,4 +1,4 @@
-# ApexSensRandomizer v1.0.1 - [Download here!](https://github.com/TorjeAmundsen/ApexSensRandomizer/releases/latest)
+# ApexSensRandomizer v1.1.0 - [Download here!](https://github.com/TorjeAmundsen/ApexSensRandomizer/releases/latest)
 A non-intrusive, customizable, autoexec/config based sensitivity randomizer for Apex Legends.
 
 
