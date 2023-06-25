@@ -9,3 +9,5 @@ gui_test/config/config.json
 *.xml
 *.json
 gui_test/config/config.json
+src/config/sensitivity_log.txt
+src/config/current_sensitivity.txt

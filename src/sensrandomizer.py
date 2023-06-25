@@ -19,7 +19,7 @@ def main():
         ui.running = not ui.running
         ui.startRandomizerButton.setText(running_text[ui.running])
         for i in disabled_while_running:
-            if i != ui.outputLabel:
+            if i != ui.outputLabel and i != ui.startRandomizerButton:
                 i.setEnabled(not ui.running)
 
     def start_randomizer():
@@ -239,11 +239,12 @@ AAAf+AAAH/wAAD/8AAA//AAAP/4AAH/+AAB//wAA//+AAf//wAP///AP/w=="""
     release_tag = "v1.0.1"
     event = threading.Event()
     running_text = ["Start Randomizer", "Stop Randomizer"]
-    disabled_while_running = [ui.gameDirectoryField, ui.dpiSelector,        ui.autoDetectButton,
-                              ui.browseButton,       ui.defaultSensSpinbox, ui.minSensSpinbox,
-                              ui.maxSensSpinbox,     ui.saveSettingsButton, ui.enableBindButton,
-                              ui.disableBindButton,  ui.timerCheckbox,      ui.timeSpinbox,
-                              ui.randomizeBindButton, ui.outputLabel]
+    disabled_while_running = [ui.gameDirectoryField,  ui.dpiSelector,        ui.autoDetectButton,
+                              ui.browseButton,        ui.defaultSensSpinbox, ui.minSensSpinbox,
+                              ui.maxSensSpinbox,      ui.saveSettingsButton, ui.enableBindButton,
+                              ui.disableBindButton,   ui.timerCheckbox,      ui.timeSpinbox,
+                              ui.randomizeBindButton, ui.outputLabel,        ui.ctrlCheck,
+                              ui.altCheck,            ui.shiftCheck,         ui.startRandomizerButton]
     
     config = Config(sens_randomizer_directory)
     config.load(ui)
