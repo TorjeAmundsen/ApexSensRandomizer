@@ -53,7 +53,7 @@ You'll need this command in your launch options for the program to work.
 
 `Randomize sensitivity` is the global hotkey for randomizing your sensitivty. This is the "main" purpose of the program, so make this one accessible. Bind it by clicking the `Set a bind...` button, and then pressing any alphanumeric key on your keyboard. The key you pressed should appear inside the button you pressed if you pressed a valid key.
 
-Checking any combination the three `Ctrl`, `Alt` or `Shift` checkboxes will require those modifiers to be held at the same time as your `Randomize sens` hotkey
+Checking any combination the three `Ctrl`, `Alt` or `Shift` checkboxes will require those modifiers to be held at the same time as your `Randomize sensitivity` hotkey
 
 ### Timer
 
