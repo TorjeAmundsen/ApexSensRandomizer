@@ -78,18 +78,19 @@ def main():
         disabling/re-enabling the GUI, using the running bool as an
         index for lists containing the relevant text to update.
         """
+        directory = ui.gameDirectoryField.text()
         ui.running = not ui.running
         ui.startRandomizerButton.setText(running_text[ui.running])
         for i in disabled_while_running:
             if i not in (ui.outputLabel, ui.startRandomizerButton):
                 i.setEnabled(not ui.running)
         now = datetime.now()
-        sens_log = open(sens_log_txt, "a", encoding="UTF-8")
-        sens_log.write(f"\n[{now.strftime('%Y-%m-%d %H:%M:%S] ')}{start_stop_log[ui.running]}")
+        with open(sens_log_txt, "a", encoding="UTF-8") as log:
+            log.write(f"\n[{now.strftime('%Y-%m-%d %H:%M:%S] ')}{start_stop_log[ui.running]}")
         if not ui.running:
             try: # Resets your randomsens.cfg to your default sensitivity
-                randomsens = open(ui.gameDirectoryField.text() + "/cfg/randomsens.cfg", "w")
-                randomsens.write(f"mouse_sensitivity {ui.defaultSensSpinbox.value()}")
+                with open(f"{directory}/cfg/randomsens.cfg", "w") as randomsens:
+                    randomsens.write(f"mouse_sensitivity {ui.defaultSensSpinbox.value()}")
             except FileNotFoundError:
                 pass
 
@@ -105,9 +106,9 @@ def main():
                 ui.outputLabel.setText(
                     f"Press {config.update_bind_modifiers(ui.randomizeBindButton.text(), ui)}")
                 if ui.timerCheckbox.isChecked():
-                    startThreadedFunction(timerLoop, ui.timeSpinbox.value())
+                    start_threaded_function(timer_loop, ui.timeSpinbox.value())
             else:
-                ui.outputLabel.setText(f"Not running")
+                ui.outputLabel.setText("Not running")
                 remove_all_hotkeys()
                 event.clear()
 
@@ -116,7 +117,7 @@ def main():
         browse = QFileDialog.getExistingDirectory(
             None,
             "Select Apex Legends Directory",
-            sens_randomizer_directory,)
+            app_directory,)
         if browse:
             ui.gameDirectoryField.setText(f"{browse}/")
 
@@ -127,11 +128,11 @@ def main():
         the user's Windows Registry.
         """
         key = OpenKey(HKEY_LOCAL_MACHINE, R"SOFTWARE\WOW6432Node\Valve\Steam")
-        path = QueryValueEx(key, "InstallPath")
-        return path[0]
+        steam_path = QueryValueEx(key, "InstallPath")
+        return steam_path[0]
 
 
-    def apex_library_path(id):
+    def apex_library_path(apex_id):
         """
         Parses libraryfolders.vdf from your Steam directory in order to
         find out which Steam library contains Apex Legends. Required in
@@ -139,12 +140,10 @@ def main():
         """
         folders = vdfload(open(rf"{find_steam_directory()}\steamapps\libraryfolders.vdf"))
         vdfstring = folders.get("libraryfolders")
-
-
         for i in vdfstring.values():
             current_path = i.get("path")
             for j in i.get("apps").keys():
-                if j == id:
+                if j == apex_id:
                     return current_path
 
 
@@ -163,7 +162,7 @@ def main():
                 rf"{apex_library_path(apexID)}\steamapps\common\{i.get('installdir')}")
 
 
-    def startThreadedFunction(function, args, button=False):
+    def start_threaded_function(function, args, button=False):
         """
         Starts a threaded function. Used to run the timer if the user
         has it enabled, and also runs the key listeners on a separate
@@ -176,15 +175,15 @@ def main():
         """
         if button:
             for i in disabled_while_running:
-                if i != args:
+                if i != args: #Disables all buttons except for the one pressed
                     i.setEnabled(False)
             args.setText("Press a key...")
-        newThread = Thread(target=function, args=(args,))
-        newThread.daemon = True
-        newThread.start()
+        new_thread = Thread(target=function, args=(args,))
+        new_thread.daemon = True
+        new_thread.start()
 
 
-    def timerLoop(delay):
+    def timer_loop(delay):
         """
         Timer loop for the main randomizer functionality.
         I had to set the sleep amount to a very low amount in order to
@@ -203,7 +202,7 @@ def main():
             sleep(0.1)
 
 
-    def recordKey(bind):
+    def record_key(bind):
         """ Listens for a keypress, and filters out invalid keys. """
         k = read_key()
         if (k.isalnum() and not len(k) > 1 or k.startswith("f")):
@@ -213,56 +212,55 @@ def main():
             bind.setText("Invalid key!")
         bind.setChecked(False)
         for i in disabled_while_running:
-            i.setEnabled(True)
+            i.setEnabled(True) # Re-enables all buttons after a key is pressed
 
 
     def randomize():
         """
         Main randomization function. Also handles writing to the
         relevant log files and randomsens.cfg.
-        Converts your sensitivity to cm/360 for logging/output.
+        Converts and formats your sensitivity to cm/360 for logging/output.
         """
-        min_float = float(ui.minSensSpinbox.value())
-        max_float = float(ui.maxSensSpinbox.value())
-        init_RNG = uniform_random(min_float, max_float)
-        sens_num_actual = round(init_RNG, 2)
-        floatSens = float(sens_num_actual)
+        min_float = ui.minSensSpinbox.value()
+        max_float = ui.maxSensSpinbox.value()
+        init_rng = uniform_random(min_float, max_float)
+        round_sens = round(init_rng, 2)
 
-        cmRev = str(round((360/(0.022*int(ui.dpiSelector.currentText())*floatSens))*2.54, 1))
+        cm_360 = str(round((360/(0.022*int(ui.dpiSelector.currentText())*round_sens))*2.54, 1))
 
-        formattedSens = f"{cmRev}cm/360 ({floatSens:.2f} @ {ui.dpiSelector.currentText()} DPI)"
+        formatted_sens = f"{cm_360}cm/360 ({round_sens:.2f} @ {ui.dpiSelector.currentText()} DPI)"
 
         now = datetime.now()
-        sensLog = open(sens_log_txt, "a")
-        sensLog.write("\n[" + now.strftime("%Y-%m-%d %H:%M:%S] ") + formattedSens)
+        with open(sens_log_txt, "a") as sens_log:
+            sens_log.write("\n[" + now.strftime("%Y-%m-%d %H:%M:%S] ") + formatted_sens)
 
-        liveSens = open(live_sens_txt, "w")
-        liveSens.write(formattedSens)
+        with open(live_sens_txt, "w") as live_sens:
+            live_sens.write(formatted_sens)
 
-        randomsens = open(ui.gameDirectoryField.text() + "/cfg/randomsens.cfg", "w")
-        randomsens.write("mouse_sensitivity " + f"{floatSens:.2f}")
+        with open(ui.gameDirectoryField.text() + "/cfg/randomsens.cfg", "w") as random_sens:
+            random_sens.write(f"mouse_sensitivity {round_sens}")
 
-        ui.outputLabel.setText(formattedSens)
+        ui.outputLabel.setText(formatted_sens)
 
 
-    """
-    The "Save Settings" button. Calls the function to save config.json.
-    Generates autoexec.cfg, enablerando.cfg, and disablerando.cfg if your game
-    directory is valid.
-    Will parse your autoexec.cfg file if it already exists, and either edit
-    the existing line containing the "exec enablerando" bind to update it, or
-    simply append the file if it exists but doesn't contain that command.
-    """
     def generate_autoexec():
+        """
+        The "Save Settings" button. Calls the function to save config.json.
+        Generates autoexec.cfg, enablerando.cfg, and disablerando.cfg if your game
+        directory is valid.
+        Will parse your autoexec.cfg file if it already exists, and either edit
+        the existing line containing the "exec enablerando" bind to update it, or
+        simply append the file if it exists but doesn't contain that command.
+        """
         config.save(ui)
-        enableStr = f"""#Automatically generated by Apex Sens Randomizer
+        enable_str = f"""#Automatically generated by Apex Sens Randomizer
 
 bind \"w\" \"+forward; exec randomsens\"
 bind \"s\" \"+backward; exec randomsens\"
 bind \"a\" \"+moveleft; exec randomsens\"
 bind \"d\" \"+moveright; exec randomsens\"
 bind \"{ui.disableBindButton.text()}\" \"exec disablerando; exec autoexec\""""
-        disableStr = f"""#Automatically generated by Apex Sens Randomizer
+        disable_str = f"""#Automatically generated by Apex Sens Randomizer
 
 unbind \"w\"
 unbind \"s\"
@@ -275,20 +273,17 @@ bind \"d\" \"+moveright\"
 bind \"{ui.enableBindButton.text()}\" \"exec enablerando\"
 mouse_sensitivity {ui.defaultSensSpinbox.value()}"""
 
-        autoexecStr = "#Automatically generated by Apex Sens Randomizer\n\n"+\
+        autoexec_str = "#Automatically generated by Apex Sens Randomizer\n\n"+\
             f"bind \"{ui.enableBindButton.text()}\" \"exec enablerando\""
         try:
-            enableRando = open(ui.gameDirectoryField.text() + "/cfg/enablerando.cfg", "w")
-            enableRando.write(enableStr)
+            with open(ui.gameDirectoryField.text() + "/cfg/enablerando.cfg", "w") as enable_rando:
+                enable_rando.write(enable_str)
         except FileNotFoundError:
             ui.startRandomizerButton.setText("Incorrect game path!")
             ui.startRandomizerButton.setEnabled(False)
             return
-        try:
-            disableRando = open(ui.gameDirectoryField.text() + "/cfg/disablerando.cfg", "w")
-            disableRando.write(disableStr)
-        except FileNotFoundError:
-            pass
+        with open(ui.gameDirectoryField.text() + "/cfg/disablerando.cfg", "w") as disable_rando:
+            disable_rando.write(disable_str)
         try:
             with open(ui.gameDirectoryField.text() + "/cfg/autoexec.cfg", 'r+') as autoexec:
                 lines = autoexec.readlines()
@@ -303,17 +298,17 @@ mouse_sensitivity {ui.defaultSensSpinbox.value()}"""
                     autoexec.writelines(lines)
         except FileNotFoundError:
             with open(rf"{ui.gameDirectoryField.text()}/cfg/autoexec.cfg", 'x') as autoexec:
-                autoexec.write(autoexecStr)
+                autoexec.write(autoexec_str)
         finally:
             ui.startRandomizerButton.setText("Start Randomizer")
             ui.startRandomizerButton.setEnabled(True)
 
 
-    FROZEN = hasattr(sys, "frozen")
-    sens_randomizer_directory = path.dirname(sys.executable if FROZEN else path.abspath(__file__))
+    frozen = hasattr(sys, "frozen")
+    app_directory = path.dirname(sys.executable if frozen else path.abspath(__file__))
 
-    live_sens_txt = f"{sens_randomizer_directory}/config/current_sensitivity.txt"
-    sens_log_txt = f"{sens_randomizer_directory}/config/sensitivity_log.txt"
+    live_sens_txt = f"{app_directory}/config/current_sensitivity.txt"
+    sens_log_txt = f"{app_directory}/config/sensitivity_log.txt"
 
     ui = QtGUI()
 
@@ -342,10 +337,10 @@ mouse_sensitivity {ui.defaultSensSpinbox.value()}"""
         ui.labelMin,            ui.labelMax,           ui.labelRandomize,
         ui.labelEnable,         ui.labelDisable]
 
-    myappid = "ApexSensRandomizer.{release_tag}"
+    myappid = "TorjeAmundsen.ApexSensRandomizer.{release_tag}"
     windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     ui.dpiSelector.setCurrentIndex(1)
-    config = Config(sens_randomizer_directory)
+    config = Config(app_directory)
     config.load(ui)
     QApplication.setStyle("fusion")
     ui.running = False
@@ -354,13 +349,13 @@ mouse_sensitivity {ui.defaultSensSpinbox.value()}"""
     ui.autoDetectButton.clicked.connect(auto_detect_directory)
     ui.saveSettingsButton.clicked.connect(generate_autoexec)
     ui.randomizeBindButton.clicked.connect(
-        lambda: startThreadedFunction(recordKey, ui.randomizeBindButton, True))
+        lambda: start_threaded_function(record_key, ui.randomizeBindButton, True))
     ui.enableBindButton.clicked.connect(
-        lambda: startThreadedFunction(recordKey, ui.enableBindButton, True))
+        lambda: start_threaded_function(record_key, ui.enableBindButton, True))
     ui.disableBindButton.clicked.connect(
-        lambda: startThreadedFunction(recordKey, ui.disableBindButton, True))
+        lambda: start_threaded_function(record_key, ui.disableBindButton, True))
     MainWindow.setWindowTitle(f"Apex Sensitivity Randomizer {release_tag}")
-    print(sens_randomizer_directory)
+    print(app_directory)
     MainWindow.show()
     if not config.update_checked:
         check_for_updates(release_tag, ui, MainWindow)
