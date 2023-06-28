@@ -16,7 +16,11 @@ The program will also output a log file `sensitivity_log.txt` containing every s
 
 # Support
 
-My [Discord Server](https://discord.gg/doomjump) has channels dedicated to support for ApexSensRandomizer if you're having issues. You can also report bugs/request features here if you don't have a GitHub account. You can also reach out to me on **[Twitter @Txrje.](https://twitter.com/Txrje)**
+My [Discord Server](https://discord.gg/doomjump) has channels dedicated to support for ApexSensRandomizer if you're having issues.
+
+![Torje's Deku Scrubs](https://badgen.net/discord/members/doomjump)
+
+You can also report bugs/request features here if you don't have a GitHub account. You can also reach out to me on **[Twitter @Txrje.](https://twitter.com/Txrje)**
 
 To report a bug/issue, or to request a feature, open a new issue here: **[ApexSensRandomizer issues](https://github.com/TorjeAmundsen/ApexSensRandomizer/issues)**
 
