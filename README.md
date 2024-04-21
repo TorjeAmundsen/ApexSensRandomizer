@@ -1,3 +1,8 @@
+# NO LONGER WORKING :(
+This method of changing your sensitivity has unfortunately been patched by Respawn when they removed chaining exec commands. Caught in the crossfire in the war on config abusers, but definitely worth as it made stuff like superglide configs and other movement cheating configs a lot harder to use.
+
+All the instructions below remain as they were (minus the support part), in case people are curious about how it *used* to work.
+
 # ApexSensRandomizer v1.1.0 - [Download here!](https://github.com/TorjeAmundsen/ApexSensRandomizer/releases/latest)
 A non-intrusive, customizable, autoexec/config based sensitivity randomizer for Apex Legends.
 
@@ -13,16 +18,6 @@ The program will also output a log file `sensitivity_log.txt` containing every s
 
 ![Screenshot of the Text properties window showing how to set it to read from a file](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/37f97a94-452f-4196-93b9-5e02fc19f801)
 ![Explorer screenshot showing which file to set the Text source to read from in OBS](https://github.com/TorjeAmundsen/ApexSensRandomizer/assets/14235956/84db3527-7462-4484-a978-8426f5d9b71f)
-
-# Support
-
-My [Discord Server](https://discord.gg/doomjump) has channels dedicated to support for ApexSensRandomizer if you're having issues.
-
-![Torje's Deku Scrubs](https://badgen.net/discord/members/doomjump)
-
-You can also report bugs/request features here if you don't have a GitHub account. You can also reach out to me on **[Twitter @Txrje.](https://twitter.com/Txrje)**
-
-To report a bug/issue, or to request a feature, open a new issue here: **[ApexSensRandomizer issues](https://github.com/TorjeAmundsen/ApexSensRandomizer/issues)**
 
 # Instructions
 
