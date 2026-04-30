@@ -1,6 +1,11 @@
 # NO LONGER WORKING :(
 This method of changing your sensitivity has unfortunately been patched by Respawn when they removed chaining exec commands. Caught in the crossfire in the war on config abusers, but definitely worth as it made stuff like superglide configs and other movement cheating configs a lot harder to use.
 
+**I have made a universal version of the sensitivity randomizer using RawAccel as a base, meaning it works in *any* game.**
+
+### **[Get UniversalSensRandomizer here!](https://github.com/TorjeAmundsen/UniversalSensRandomizer)**
+
+
 All the instructions below remain as they were (minus the support part), in case people are curious about how it *used* to work.
 
 # ApexSensRandomizer v1.1.0 - [Download here!](https://github.com/TorjeAmundsen/ApexSensRandomizer/releases/latest)
